@@ -6,27 +6,34 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D8AA0020307A930000632E1F /* Domain in Frameworks */ = {isa = PBXBuildFile; productRef = D8AA0010307A930000632E1F /* Domain */; };
+		D8AA0021307A930000632E1F /* MarketSimulator in Frameworks */ = {isa = PBXBuildFile; productRef = D8AA0011307A930000632E1F /* MarketSimulator */; };
+		D8AA0022307A930000632E1F /* Persistence in Frameworks */ = {isa = PBXBuildFile; productRef = D8AA0012307A930000632E1F /* Persistence */; };
+		D8AA0023307A930000632E1F /* Charts in Frameworks */ = {isa = PBXBuildFile; productRef = D8AA0013307A930000632E1F /* Charts */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		D86445B4307A925200632E1F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D8644595307A925100632E1F /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = D864459C307A925100632E1F;
-			remoteInfo = "StockSim";
+			remoteInfo = StockSim;
 		};
 		D86445BE307A925300632E1F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D8644595307A925100632E1F /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = D864459C307A925100632E1F;
-			remoteInfo = "StockSim";
+			remoteInfo = StockSim;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		D864459D307A925100632E1F /* StockSim.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "StockSim.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		D86445B3307A925200632E1F /* StockSimTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "StockSimTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		D86445BD307A925200632E1F /* StockSimUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "StockSimUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D864459D307A925100632E1F /* StockSim.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StockSim.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D86445B3307A925200632E1F /* StockSimTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = StockSimTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D86445BD307A925200632E1F /* StockSimUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = StockSimUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -45,17 +52,17 @@
 			exceptions = (
 				D86445C5307A925300632E1F /* Exceptions for "StockSim" folder in "StockSim" target */,
 			);
-			path = "StockSim";
+			path = StockSim;
 			sourceTree = "<group>";
 		};
 		D86445B6307A925200632E1F /* StockSimTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "StockSimTests";
+			path = StockSimTests;
 			sourceTree = "<group>";
 		};
 		D86445C0307A925300632E1F /* StockSimUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "StockSimUITests";
+			path = StockSimUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -65,6 +72,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D8AA0020307A930000632E1F /* Domain in Frameworks */,
+				D8AA0021307A930000632E1F /* MarketSimulator in Frameworks */,
+				D8AA0022307A930000632E1F /* Persistence in Frameworks */,
+				D8AA0023307A930000632E1F /* Charts in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -123,10 +134,14 @@
 			fileSystemSynchronizedGroups = (
 				D864459F307A925100632E1F /* StockSim */,
 			);
-			name = "StockSim";
+			name = StockSim;
 			packageProductDependencies = (
+				D8AA0010307A930000632E1F /* Domain */,
+				D8AA0011307A930000632E1F /* MarketSimulator */,
+				D8AA0012307A930000632E1F /* Persistence */,
+				D8AA0013307A930000632E1F /* Charts */,
 			);
-			productName = "StockSim";
+			productName = StockSim;
 			productReference = D864459D307A925100632E1F /* StockSim.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -146,10 +161,10 @@
 			fileSystemSynchronizedGroups = (
 				D86445B6307A925200632E1F /* StockSimTests */,
 			);
-			name = "StockSimTests";
+			name = StockSimTests;
 			packageProductDependencies = (
 			);
-			productName = "StockSimTests";
+			productName = StockSimTests;
 			productReference = D86445B3307A925200632E1F /* StockSimTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
@@ -169,10 +184,10 @@
 			fileSystemSynchronizedGroups = (
 				D86445C0307A925300632E1F /* StockSimUITests */,
 			);
-			name = "StockSimUITests";
+			name = StockSimUITests;
 			packageProductDependencies = (
 			);
-			productName = "StockSimUITests";
+			productName = StockSimUITests;
 			productReference = D86445BD307A925200632E1F /* StockSimUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
@@ -208,6 +223,9 @@
 			);
 			mainGroup = D8644594307A925100632E1F;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				D8AA0001307A930000632E1F /* XCLocalSwiftPackageReference "../MarketKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D864459E307A925100632E1F /* Products */;
 			projectDirPath = "";
@@ -291,10 +309,9 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UV2LV9YB6M;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "StockSim/Info.plist";
+				INFOPLIST_FILE = StockSim/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -302,14 +319,12 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSim";
+				PRODUCT_BUNDLE_IDENTIFIER = com.alicankurt.StockSim;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -323,10 +338,9 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UV2LV9YB6M;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "StockSim/Info.plist";
+				INFOPLIST_FILE = StockSim/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -334,14 +348,12 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSim";
+				PRODUCT_BUNDLE_IDENTIFIER = com.alicankurt.StockSim;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -399,7 +411,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -457,7 +469,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -475,15 +487,14 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UV2LV9YB6M;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSimTests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.alicankurt.StockSimTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/StockSim.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/StockSim";
 			};
@@ -497,15 +508,14 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UV2LV9YB6M;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSimTests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.alicankurt.StockSimTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/StockSim.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/StockSim";
 			};
@@ -518,16 +528,16 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UV2LV9YB6M;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSimUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.alicankurt.StockSimUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "StockSim";
+				TEST_TARGET_NAME = StockSim;
 			};
 			name = Debug;
 		};
@@ -538,16 +548,16 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UV2LV9YB6M;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSimUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.alicankurt.StockSimUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "StockSim";
+				TEST_TARGET_NAME = StockSim;
 			};
 			name = Release;
 		};
@@ -591,6 +601,32 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		D8AA0001307A930000632E1F /* XCLocalSwiftPackageReference "../MarketKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../MarketKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D8AA0010307A930000632E1F /* Domain */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Domain;
+		};
+		D8AA0011307A930000632E1F /* MarketSimulator */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MarketSimulator;
+		};
+		D8AA0012307A930000632E1F /* Persistence */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Persistence;
+		};
+		D8AA0013307A930000632E1F /* Charts */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Charts;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = D8644595307A925100632E1F /* Project object */;
 }
