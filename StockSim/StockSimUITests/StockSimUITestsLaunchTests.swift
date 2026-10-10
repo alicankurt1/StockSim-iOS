@@ -1,13 +1,13 @@
 //
-//  StockSim_iOSUITestsLaunchTests.swift
-//  StockSim-iOSUITests
+//  StockSimUITestsLaunchTests.swift
+//  StockSimUITests
 //
 //  Created by Alicank on 10.10.2026.
 //
 
 import XCTest
 
-final class StockSim_iOSUITestsLaunchTests: XCTestCase {
+final class StockSimUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

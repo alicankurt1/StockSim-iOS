@@ -1,6 +1,6 @@
 //
 //  SceneDelegate.swift
-//  StockSim-iOS
+//  StockSim
 //
 //  Created by Alicank on 10.10.2026.
 //

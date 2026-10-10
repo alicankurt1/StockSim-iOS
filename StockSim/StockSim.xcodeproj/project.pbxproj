@@ -12,50 +12,50 @@
 			containerPortal = D8644595307A925100632E1F /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = D864459C307A925100632E1F;
-			remoteInfo = "StockSim-iOS";
+			remoteInfo = "StockSim";
 		};
 		D86445BE307A925300632E1F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D8644595307A925100632E1F /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = D864459C307A925100632E1F;
-			remoteInfo = "StockSim-iOS";
+			remoteInfo = "StockSim";
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		D864459D307A925100632E1F /* StockSim-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "StockSim-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		D86445B3307A925200632E1F /* StockSim-iOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "StockSim-iOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		D86445BD307A925200632E1F /* StockSim-iOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "StockSim-iOSUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D864459D307A925100632E1F /* StockSim.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "StockSim.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D86445B3307A925200632E1F /* StockSimTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "StockSimTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D86445BD307A925200632E1F /* StockSimUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "StockSimUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		D86445C5307A925300632E1F /* Exceptions for "StockSim-iOS" folder in "StockSim-iOS" target */ = {
+		D86445C5307A925300632E1F /* Exceptions for "StockSim" folder in "StockSim" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = D864459C307A925100632E1F /* StockSim-iOS */;
+			target = D864459C307A925100632E1F /* StockSim */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		D864459F307A925100632E1F /* StockSim-iOS */ = {
+		D864459F307A925100632E1F /* StockSim */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				D86445C5307A925300632E1F /* Exceptions for "StockSim-iOS" folder in "StockSim-iOS" target */,
+				D86445C5307A925300632E1F /* Exceptions for "StockSim" folder in "StockSim" target */,
 			);
-			path = "StockSim-iOS";
+			path = "StockSim";
 			sourceTree = "<group>";
 		};
-		D86445B6307A925200632E1F /* StockSim-iOSTests */ = {
+		D86445B6307A925200632E1F /* StockSimTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "StockSim-iOSTests";
+			path = "StockSimTests";
 			sourceTree = "<group>";
 		};
-		D86445C0307A925300632E1F /* StockSim-iOSUITests */ = {
+		D86445C0307A925300632E1F /* StockSimUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "StockSim-iOSUITests";
+			path = "StockSimUITests";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -88,9 +88,9 @@
 		D8644594307A925100632E1F = {
 			isa = PBXGroup;
 			children = (
-				D864459F307A925100632E1F /* StockSim-iOS */,
-				D86445B6307A925200632E1F /* StockSim-iOSTests */,
-				D86445C0307A925300632E1F /* StockSim-iOSUITests */,
+				D864459F307A925100632E1F /* StockSim */,
+				D86445B6307A925200632E1F /* StockSimTests */,
+				D86445C0307A925300632E1F /* StockSimUITests */,
 				D864459E307A925100632E1F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -98,9 +98,9 @@
 		D864459E307A925100632E1F /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D864459D307A925100632E1F /* StockSim-iOS.app */,
-				D86445B3307A925200632E1F /* StockSim-iOSTests.xctest */,
-				D86445BD307A925200632E1F /* StockSim-iOSUITests.xctest */,
+				D864459D307A925100632E1F /* StockSim.app */,
+				D86445B3307A925200632E1F /* StockSimTests.xctest */,
+				D86445BD307A925200632E1F /* StockSimUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -108,9 +108,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D864459C307A925100632E1F /* StockSim-iOS */ = {
+		D864459C307A925100632E1F /* StockSim */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D86445C6307A925300632E1F /* Build configuration list for PBXNativeTarget "StockSim-iOS" */;
+			buildConfigurationList = D86445C6307A925300632E1F /* Build configuration list for PBXNativeTarget "StockSim" */;
 			buildPhases = (
 				D8644599307A925100632E1F /* Sources */,
 				D864459A307A925100632E1F /* Frameworks */,
@@ -121,18 +121,18 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				D864459F307A925100632E1F /* StockSim-iOS */,
+				D864459F307A925100632E1F /* StockSim */,
 			);
-			name = "StockSim-iOS";
+			name = "StockSim";
 			packageProductDependencies = (
 			);
-			productName = "StockSim-iOS";
-			productReference = D864459D307A925100632E1F /* StockSim-iOS.app */;
+			productName = "StockSim";
+			productReference = D864459D307A925100632E1F /* StockSim.app */;
 			productType = "com.apple.product-type.application";
 		};
-		D86445B2307A925200632E1F /* StockSim-iOSTests */ = {
+		D86445B2307A925200632E1F /* StockSimTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D86445CB307A925300632E1F /* Build configuration list for PBXNativeTarget "StockSim-iOSTests" */;
+			buildConfigurationList = D86445CB307A925300632E1F /* Build configuration list for PBXNativeTarget "StockSimTests" */;
 			buildPhases = (
 				D86445AF307A925200632E1F /* Sources */,
 				D86445B0307A925200632E1F /* Frameworks */,
@@ -144,18 +144,18 @@
 				D86445B5307A925200632E1F /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				D86445B6307A925200632E1F /* StockSim-iOSTests */,
+				D86445B6307A925200632E1F /* StockSimTests */,
 			);
-			name = "StockSim-iOSTests";
+			name = "StockSimTests";
 			packageProductDependencies = (
 			);
-			productName = "StockSim-iOSTests";
-			productReference = D86445B3307A925200632E1F /* StockSim-iOSTests.xctest */;
+			productName = "StockSimTests";
+			productReference = D86445B3307A925200632E1F /* StockSimTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		D86445BC307A925200632E1F /* StockSim-iOSUITests */ = {
+		D86445BC307A925200632E1F /* StockSimUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D86445CE307A925300632E1F /* Build configuration list for PBXNativeTarget "StockSim-iOSUITests" */;
+			buildConfigurationList = D86445CE307A925300632E1F /* Build configuration list for PBXNativeTarget "StockSimUITests" */;
 			buildPhases = (
 				D86445B9307A925200632E1F /* Sources */,
 				D86445BA307A925200632E1F /* Frameworks */,
@@ -167,13 +167,13 @@
 				D86445BF307A925300632E1F /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				D86445C0307A925300632E1F /* StockSim-iOSUITests */,
+				D86445C0307A925300632E1F /* StockSimUITests */,
 			);
-			name = "StockSim-iOSUITests";
+			name = "StockSimUITests";
 			packageProductDependencies = (
 			);
-			productName = "StockSim-iOSUITests";
-			productReference = D86445BD307A925200632E1F /* StockSim-iOSUITests.xctest */;
+			productName = "StockSimUITests";
+			productReference = D86445BD307A925200632E1F /* StockSimUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -199,7 +199,7 @@
 					};
 				};
 			};
-			buildConfigurationList = D8644598307A925100632E1F /* Build configuration list for PBXProject "StockSim-iOS" */;
+			buildConfigurationList = D8644598307A925100632E1F /* Build configuration list for PBXProject "StockSim" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -213,9 +213,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				D864459C307A925100632E1F /* StockSim-iOS */,
-				D86445B2307A925200632E1F /* StockSim-iOSTests */,
-				D86445BC307A925200632E1F /* StockSim-iOSUITests */,
+				D864459C307A925100632E1F /* StockSim */,
+				D86445B2307A925200632E1F /* StockSimTests */,
+				D86445BC307A925200632E1F /* StockSimUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -271,12 +271,12 @@
 /* Begin PBXTargetDependency section */
 		D86445B5307A925200632E1F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = D864459C307A925100632E1F /* StockSim-iOS */;
+			target = D864459C307A925100632E1F /* StockSim */;
 			targetProxy = D86445B4307A925200632E1F /* PBXContainerItemProxy */;
 		};
 		D86445BF307A925300632E1F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = D864459C307A925100632E1F /* StockSim-iOS */;
+			target = D864459C307A925100632E1F /* StockSim */;
 			targetProxy = D86445BE307A925300632E1F /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -291,7 +291,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UV2LV9YB6M;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "StockSim-iOS/Info.plist";
+				INFOPLIST_FILE = "StockSim/Info.plist";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -302,7 +302,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSim-iOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSim";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -323,7 +323,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UV2LV9YB6M;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "StockSim-iOS/Info.plist";
+				INFOPLIST_FILE = "StockSim/Info.plist";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -334,7 +334,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSim-iOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSim";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -477,7 +477,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSim-iOSTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSimTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -485,7 +485,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/StockSim-iOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/StockSim-iOS";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/StockSim.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/StockSim";
 			};
 			name = Debug;
 		};
@@ -499,7 +499,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSim-iOSTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSimTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -507,7 +507,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/StockSim-iOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/StockSim-iOS";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/StockSim.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/StockSim";
 			};
 			name = Release;
 		};
@@ -519,7 +519,7 @@
 				DEVELOPMENT_TEAM = UV2LV9YB6M;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSim-iOSUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSimUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -527,7 +527,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "StockSim-iOS";
+				TEST_TARGET_NAME = "StockSim";
 			};
 			name = Debug;
 		};
@@ -539,7 +539,7 @@
 				DEVELOPMENT_TEAM = UV2LV9YB6M;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSim-iOSUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.alicankurt.StockSimUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -547,14 +547,14 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "StockSim-iOS";
+				TEST_TARGET_NAME = "StockSim";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		D8644598307A925100632E1F /* Build configuration list for PBXProject "StockSim-iOS" */ = {
+		D8644598307A925100632E1F /* Build configuration list for PBXProject "StockSim" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D86445C9307A925300632E1F /* Debug */,
@@ -563,7 +563,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D86445C6307A925300632E1F /* Build configuration list for PBXNativeTarget "StockSim-iOS" */ = {
+		D86445C6307A925300632E1F /* Build configuration list for PBXNativeTarget "StockSim" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D86445C7307A925300632E1F /* Debug */,
@@ -572,7 +572,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D86445CB307A925300632E1F /* Build configuration list for PBXNativeTarget "StockSim-iOSTests" */ = {
+		D86445CB307A925300632E1F /* Build configuration list for PBXNativeTarget "StockSimTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D86445CC307A925300632E1F /* Debug */,
@@ -581,7 +581,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D86445CE307A925300632E1F /* Build configuration list for PBXNativeTarget "StockSim-iOSUITests" */ = {
+		D86445CE307A925300632E1F /* Build configuration list for PBXNativeTarget "StockSimUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D86445CF307A925300632E1F /* Debug */,

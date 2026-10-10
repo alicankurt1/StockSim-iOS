@@ -1,14 +1,14 @@
 //
-//  StockSim_iOSTests.swift
-//  StockSim-iOSTests
+//  StockSimTests.swift
+//  StockSimTests
 //
 //  Created by Alicank on 10.10.2026.
 //
 
 import Testing
-@testable import StockSim_iOS
+@testable import StockSim
 
-struct StockSim_iOSTests {
+struct StockSimTests {
 
     @Test func example() async throws {
         // Write your test here and use APIs like `#expect(...)` to check expected conditions.

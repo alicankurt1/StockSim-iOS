@@ -1,13 +1,13 @@
 //
-//  StockSim_iOSUITests.swift
-//  StockSim-iOSUITests
+//  StockSimUITests.swift
+//  StockSimUITests
 //
 //  Created by Alicank on 10.10.2026.
 //
 
 import XCTest
 
-final class StockSim_iOSUITests: XCTestCase {
+final class StockSimUITests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
