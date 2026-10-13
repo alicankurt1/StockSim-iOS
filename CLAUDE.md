@@ -4,7 +4,11 @@ Guidance for Claude when working in this repository.
 
 ## Project
 
-StockSim is a paper-trading stock app for learning: Clean Swift (VIP), SOLID, test-driven development, custom UIKit drawing and performance. See `PLAN.md` for phases and contracts.
+StockSim is a paper-trading stock app for learning: Clean Swift (VIP), SOLID, test-driven development, custom UIKit drawing and performance.
+
+The plan (phases, architecture, simulator contract) is loaded below and is the source of truth for what to build next:
+
+@PLAN.md
 
 ## Language
 
