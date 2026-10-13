@@ -1,17 +1,20 @@
-//
-//  StockSimTests.swift
-//  StockSimTests
-//
-//  Created by Alicank on 10.10.2026.
-//
-
 import Testing
+import UIKit
+import Domain
 @testable import StockSim
 
-struct StockSimTests {
+// Duman testleri: composition root ekranı doğru kuruyor mu, paket modülleri uygulamaya bağlı mı?
+@MainActor
+struct AppAssemblerTests {
 
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+    @Test func rootIsNavigationControllerWithWatchlist() throws {
+        let root = AppAssembler().makeRootViewController()
+
+        let navigationController = try #require(root as? UINavigationController)
+        #expect(navigationController.topViewController?.title == "Watchlist")
     }
 
+    @Test func marketKitIsLinked() {
+        #expect(DomainModule.name == "Domain")
+    }
 }
