@@ -4,7 +4,7 @@ A paper-trading stock app built to practice **Clean Swift (VIP)**, **SOLID**, **
 
 ## Legend
 
-- ✍️ — written by me; Claude explains the concept, provides the skeleton (types, signatures, `// TODO`) and reviews.
+- ✍️ — production code written by me; Claude explains the concept, provides the skeleton (types, signatures, `// TODO`) and the tests (as the spec), then reviews.
 - 🤖 — written by Claude (boilerplate, VIP templates, project settings) and explained in 3–5 bullets.
 - Every phase lives on its own branch `phase-N/<topic>` and ends with 2–3 review questions (answers go to `NOTES.md`).
 

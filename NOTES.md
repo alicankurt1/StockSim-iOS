@@ -28,3 +28,6 @@ Somut tiplerin oluşturulup birbirine bağlandığı tek yer; bizde `AppAssemble
 3. Model tiplerinin bile MainActor'e bağlanması "isolated conformance" gibi kafa karıştırıcı hatalar doğurur.
 
 Bedeli: UIKit'ten türemeyen UI tiplerine (`AppAssembler`, Presenter, Interactor) `@MainActor`'ü elle yazmak. Varsayılan MainActor yanlış değil, Apple uygulamalar için öneriyor; biz tutarlılık ve öğrenme için açık yazmayı seçtik.
+
+**Clean Swift yüzünden mi kapattık? Interactor/Presenter main'de olmasın mı istedik?**
+Hayır. Interactor ve Presenter da `@MainActor` olacak: VIP döngüsü UI'ı besleyen bir zincir, main'de olması en basit ve güvenli seçim. Ağır işler (fiyat üretimi, JSON, dosya) paketteki actor'lerde çalışır, Interactor onlardan `await` ile sonuç ister. Uygulama tarafında sonuç neredeyse aynı; fark, izolasyonun proje ayarında saklı olması yerine tipin üstünde yazılı olması. Önceki projede de ayar kapalıydı ve `@MainActor` ViewModel'lere elle yazılmıştı; Xcode 26 şablonu bu ayarı varsayılan açtığı için bu sefer bilerek kapattık.

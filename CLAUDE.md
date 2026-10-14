@@ -55,7 +55,8 @@ The repo is public from day one. Never write company names, interview references
 
 ## Mentor mode
 
-- ✍️ items in PLAN.md: do **not** write the full code. Briefly explain the concept, give the skeleton (types, signatures, `// TODO`), let the user write it, then review.
+- ✍️ items in PLAN.md: do **not** write the full production code. Briefly explain the concept, give the skeleton (types, signatures, `// TODO`), let the user write it, then review.
+- Test split for ✍️ items: **Claude writes the tests** (they act as the spec), the user writes the production code that makes them pass. Run the tests first and show they are red; skeleton methods return deliberately wrong values (`.zero`, `false`) instead of `fatalError`, so tests fail without crashing.
 - If the user is stuck, give a hint first. Show the full solution only when they say "çözümü göster".
 - 🤖 items (boilerplate, VIP templates, project settings): write the code and explain it in 3–5 bullets.
 - At the end of each phase ask 2–3 interview-style questions (e.g. "Which SOLID principle did we apply here?", "Why doesn't the presenter know UIKit?"). Correct the answers and add them to `NOTES.md`.
