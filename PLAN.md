@@ -4,8 +4,10 @@ A paper-trading stock app built to practice **Clean Swift (VIP)**, **SOLID**, **
 
 ## Legend
 
-- ✍️ — written by me; Claude explains the concept, provides the skeleton (types, signatures, `// TODO`) and reviews.
-- 🤖 — written by Claude (boilerplate, VIP templates, project settings) and explained in 3–5 bullets.
+- ✍️ — the heart of the pattern is written by me (one concept per step); Claude provides the big picture, the surrounding plumbing and the tests (as the spec), then reviews.
+- 🤖 — written by Claude and summarized briefly: only the transferable concept, not the finance/math details.
+
+**Learning focus:** Clean Swift (VIP), UIKit (programmatic layout, compositional layout, diffable, cells) and custom drawing. Finance rules and simulator math are 🤖 so they don't distract from that.
 - Every phase lives on its own branch `phase-N/<topic>` and ends with 2–3 review questions (answers go to `NOTES.md`).
 
 ## Tech decisions
@@ -121,16 +123,16 @@ public enum ChartRange: CaseIterable { case day, week, month, year }  // 1G / 1H
 
 **Learns:** DIP, composition root, module dependency direction.
 
-### Phase 1 — Domain, TDD (~4–6 h) ✍️
-- [ ] `Money` (Decimal), `Symbol`, `Instrument`, `Quote`, `Candle`
-- [ ] `Order`, `OrderType` (market), `Trade`, `TradingError`
-- [ ] `Position`, `Portfolio`: average cost, realized / unrealized P&L, total value
-- [ ] Balance and quantity checks
-- [ ] Table-driven tests written first
+### Phase 1 — Domain, TDD (~3 h) 🤖
+- [x] `Money` (Decimal), `Symbol`, `Instrument`, `Quote`, `Candle`
+- [x] `Order`, `OrderType` (market), `Trade`, `TradingError`
+- [x] `Position`, `Portfolio`: average cost, realized / unrealized P&L, total value
+- [x] Balance and quantity checks
+- [x] Table-driven tests written first
 
-**Learns:** SRP, OCP (`OrderType`), why `Decimal` over `Double`, parameterized tests.
+**Learns:** SRP, OCP (`OrderType`), why `Decimal` over `Double`, TDD cycle, parameterized tests.
 
-### Phase 2 — Market simulator (~5–6 h) ✍️ core / 🤖 plumbing
+### Phase 2 — Market simulator (~3 h) 🤖
 - [ ] Seeded RNG (SplitMix64) + normal distribution (Box–Muller)
 - [ ] GBM step function (pure, tested)
 - [ ] `actor MarketSimulator` with `AsyncStream<MarketUpdate>` and injected clock
@@ -139,7 +141,7 @@ public enum ChartRange: CaseIterable { case day, week, month, year }  // 1G / 1H
 
 **Learns:** actors, AsyncStream, determinism, LSP & ISP.
 
-### Phase 3 — Watchlist scene, first VIP cycle (~5 h) 🤖 template / ✍️ interactor + presenter
+### Phase 3 — Watchlist scene, first VIP cycle (~6 h) ✍️
 - [ ] VIP template files
 - [ ] Compositional layout + diffable data source, `reconfigureItems` for live prices
 - [ ] Presenter formatting (currency, %, `PriceTrend`)
@@ -217,7 +219,7 @@ public enum ChartRange: CaseIterable { case day, week, month, year }  // 1G / 1H
 - [ ] Dark mode pass, basic accessibility
 - [ ] README GIFs, disclaimer, cleanup
 
-**Total:** ~55–65 h. Demo clips are collected under `docs/media/` at the end of each visual phase.
+**Total:** ~50–60 h. Demo clips are collected under `docs/media/` at the end of each visual phase.
 
 ## Cut list
 

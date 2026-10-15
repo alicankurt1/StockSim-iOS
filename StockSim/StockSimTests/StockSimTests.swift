@@ -15,6 +15,6 @@ struct AppAssemblerTests {
     }
 
     @Test func marketKitIsLinked() {
-        #expect(DomainModule.name == "Domain")
+        #expect(Money.zero.amount == 0)
     }
 }

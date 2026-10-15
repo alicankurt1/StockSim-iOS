@@ -28,3 +28,17 @@ Somut tiplerin oluşturulup birbirine bağlandığı tek yer; bizde `AppAssemble
 3. Model tiplerinin bile MainActor'e bağlanması "isolated conformance" gibi kafa karıştırıcı hatalar doğurur.
 
 Bedeli: UIKit'ten türemeyen UI tiplerine (`AppAssembler`, Presenter, Interactor) `@MainActor`'ü elle yazmak. Varsayılan MainActor yanlış değil, Apple uygulamalar için öneriyor; biz tutarlılık ve öğrenme için açık yazmayı seçtik.
+
+**Clean Swift yüzünden mi kapattık? Interactor/Presenter main'de olmasın mı istedik?**
+Hayır. Interactor ve Presenter da `@MainActor` olacak: VIP döngüsü UI'ı besleyen bir zincir, main'de olması en basit ve güvenli seçim. Ağır işler (fiyat üretimi, JSON, dosya) paketteki actor'lerde çalışır, Interactor onlardan `await` ile sonuç ister. Uygulama tarafında sonuç neredeyse aynı; fark, izolasyonun proje ayarında saklı olması yerine tipin üstünde yazılı olması. Önceki projede de ayar kapalıydı ve `@MainActor` ViewModel'lere elle yazılmıştı; Xcode 26 şablonu bu ayarı varsayılan açtığı için bu sefer bilerek kapattık.
+
+## Phase 1 — Domain
+
+**TDD nedir?**
+Önce test, sonra kod. Döngü: 🔴 testi yaz ve başarısız olduğunu gör → 🟢 geçirecek en basit kodu yaz → 🔵 testler yeşilken kodu temizle. Kırmızıyı görmek testin gerçekten bir şey kontrol ettiğini kanıtlar.
+
+**Para için neden `Double` değil `Decimal`?**
+`Double` ikili kesir tutar; `0.1 + 0.2` tam `0.3` etmez. `Decimal` ondalık tabanda tutar, kuruş kaybı olmaz. Tuzak: `let d: Decimal = 0.1` önce Double'dan geçer; string'den kurmak güvenli.
+
+**OCP: `Portfolio`'ya `if order.type == .market ... else if .limit ...` yazsaydık ne kaybederdik?**
+Her yeni emir tipinde çalışan ve test edilmiş `Portfolio`'yu açıp değiştirmek gerekirdi; `Portfolio` her emir tipinin fiyat kuralını da bilmek zorunda kalırdı (SRP ihlali). Bunun yerine `Portfolio` fiyatı `OrderType` protokolüne soruyor. Yeni emir tipi = yeni bir dosya, `Portfolio` değişmez. "Genişlemeye açık, değişime kapalı."

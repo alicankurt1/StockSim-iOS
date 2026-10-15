@@ -6,5 +6,4 @@ import Domain
 /// Modülün varlığını doğrulayan geçici işaret. Phase 4'te silinecek.
 public enum ChartsModule {
     public static let name = "Charts"
-    public static let dependsOn = DomainModule.name
 }
