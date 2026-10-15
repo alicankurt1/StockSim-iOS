@@ -22,7 +22,7 @@ See [PLAN.md](PLAN.md) for architecture and phases.
 |---|---|---|
 | 0 | Foundation | ✅ Done |
 | 1 | Domain (TDD) | ✅ Done |
-| 2 | Market simulator | ⏳ |
+| 2 | Market simulator | ✅ Done |
 | 3 | Watchlist scene (VIP) | ⏳ |
 | 4 | Sparkline | ⏳ |
 | 5 | Stock detail + line chart | ⏳ |
