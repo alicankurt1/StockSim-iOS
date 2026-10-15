@@ -50,3 +50,11 @@ Class'taki değişen durum (`var prices`) birden fazla yerden (fiyat döngüsü,
 
 **Testte neden saniyelerce beklemiyoruz?**
 Bekleme davranışı (`sleep`) ve saat (`now`) dışarıdan closure olarak veriliyor (DI). Uygulamada gerçek `Task.sleep`, testte hiç beklemeyen bir closure. Testler ayrıca `tick()`'i doğrudan çağırıyor. Aynı seed aynı fiyat yolunu verdiği için sonuçlar tekrarlanabilir.
+
+## Phase 3 — Watchlist (ilk VIP sahnesi)
+
+**VIP döngüsü nedir?**
+Tek yönlü bir halka: VC → Interactor → Presenter → VC. VC gösterir ve olayları iletir; Interactor karar verir (Worker'dan veri alır, başarı/hata); Presenter biçimlendirir. Kimse geri dönüp diğerine soru sormaz. VIPER'dan farkı: orada Presenter merkezdir ve akış çift yönlüdür; VIP'te merkez yok, veri halka gibi döner. Router ekran geçişlerini ve DataStore üzerinden veri taşımayı üstlenir.
+
+**Interactor neden doğrudan VC'yi değil Presenter'ı çağırır?**
+Formatlama ayrı bir sorumluluk (SRP). Interactor ham veri (`Instrument`, `Money`) tutar; ekran string ve renk kararı ister. Interactor formatlasaydı iş kuralı ve görünüm karışırdı; VC formatlasaydı hesap UIKit'e girer ve test edilemezdi. Presenter araya girince iş kuralı ve görünüm bağımsız değişir, ikisi de UIKit olmadan test edilir.
