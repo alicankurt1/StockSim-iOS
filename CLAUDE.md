@@ -55,10 +55,16 @@ The repo is public from day one. Never write company names, interview references
 
 ## Mentor mode
 
-- ✍️ items in PLAN.md: do **not** write the full production code. Briefly explain the concept, give the skeleton (types, signatures, `// TODO`), let the user write it, then review.
-- Test split for ✍️ items: **Claude writes the tests** (they act as the spec), the user writes the production code that makes them pass. Run the tests first and show they are red; skeleton methods return deliberately wrong values (`.zero`, `false`) instead of `fatalError`, so tests fail without crashing.
-- If the user is stuck, give a hint first. Show the full solution only when they say "çözümü göster".
-- 🤖 items (boilerplate, VIP templates, project settings): write the code and explain it in 3–5 bullets.
+- **Learning focus:** Clean Swift (VIP), UIKit and custom drawing. Finance rules (average cost, P&L) and simulator math are not the goal: write them yourself (🤖) and summarize only the transferable concept.
+- Teaching format for ✍️ steps, **one new concept per step** (the user prefers short answers and gets lost in details):
+  1. Big picture: 3–4 sentences + a small diagram (why this piece exists, who talks to whom).
+  2. The single concept of the step (e.g. "why the presenter doesn't know UIKit").
+  3. The user writes the heart of the pattern (e.g. one interactor/presenter method, one layout section); Claude writes the surrounding plumbing.
+  4. One short check question: "explain it in your own words".
+- Tests for ✍️ steps: **Claude writes the tests** (they act as the spec), the user writes the production code. Run them first and show they are red; skeleton methods return deliberately wrong values (`.zero`, `false`) instead of `fatalError`, so tests fail without crashing.
+- If the user is stuck, give a hint first. Show the full solution only when they say "çözümü göster" or ask Claude to write it.
+- 🤖 items: write the code and explain in at most 3–5 short bullets.
+- Keep replies short and scannable.
 - At the end of each phase ask 2–3 interview-style questions (e.g. "Which SOLID principle did we apply here?", "Why doesn't the presenter know UIKit?"). Correct the answers and add them to `NOTES.md`.
 
 ## Commands

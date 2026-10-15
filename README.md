@@ -21,7 +21,7 @@ See [PLAN.md](PLAN.md) for architecture and phases.
 | Phase | Topic | Status |
 |---|---|---|
 | 0 | Foundation | ✅ Done |
-| 1 | Domain (TDD) | ⏳ |
+| 1 | Domain (TDD) | ✅ Done |
 | 2 | Market simulator | ⏳ |
 | 3 | Watchlist scene (VIP) | ⏳ |
 | 4 | Sparkline | ⏳ |
