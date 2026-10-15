@@ -79,7 +79,7 @@ A paper-trading stock app built to practice **Clean Swift (VIP)**, **SOLID**, **
 ```swift
 public protocol MarketDataProviding: Sendable {
     func instruments() async throws -> [Instrument]
-    func updates(for symbols: [Symbol]) -> AsyncStream<MarketUpdate>
+    func updates(for symbols: [Symbol]) async -> AsyncStream<MarketUpdate>
     func history(for symbol: Symbol, range: ChartRange) async throws -> [Candle]
 }
 
@@ -95,11 +95,11 @@ public enum MarketUpdate: Sendable {
     case feedRestored
 }
 
-public enum ChartRange: CaseIterable { case day, week, month, year }  // 1G / 1H / 1A / 1Y
+public enum ChartRange: String, CaseIterable { case day, week, month, year }  // 1G / 1H / 1A / 1Y
 ```
 
 - **Price model:** geometric Brownian motion per tick: `S(t+Δt) = S(t) · exp((μ − σ²/2)·Δt + σ·√Δt·Z)`, `Z ~ N(0, 1)`.
-- **Determinism:** a seeded RNG (SplitMix64) + an injected clock. Same seed ⇒ same price path, so tests are repeatable and never sleep.
+- **Determinism:** a seeded RNG (SplitMix64) + injected `sleep` and `now` closures. Same seed ⇒ same price path; tests call `tick()` directly and never sleep.
 - **History:** generated from the same seed; ticks are aggregated into OHLC candles per range (day: 5 min, week: 1 h, month: 1 d, year: 1 w).
 - **Instruments:** real BIST tickers (e.g. THYAO, ASELS) with simulated prices; the UI shows a `SIMULATED` badge in simulator mode.
 
@@ -133,11 +133,11 @@ public enum ChartRange: CaseIterable { case day, week, month, year }  // 1G / 1H
 **Learns:** SRP, OCP (`OrderType`), why `Decimal` over `Double`, TDD cycle, parameterized tests.
 
 ### Phase 2 — Market simulator (~3 h) 🤖
-- [ ] Seeded RNG (SplitMix64) + normal distribution (Box–Muller)
-- [ ] GBM step function (pure, tested)
-- [ ] `actor MarketSimulator` with `AsyncStream<MarketUpdate>` and injected clock
-- [ ] History generation + OHLC aggregation
-- [ ] Edge-case triggers via `MarketControlling`
+- [x] Seeded RNG (SplitMix64) + normal distribution (Box–Muller)
+- [x] GBM step function (pure, tested)
+- [x] `actor MarketSimulator` with `AsyncStream<MarketUpdate>` and injected sleep / clock
+- [x] History generation + OHLC aggregation
+- [x] Edge-case triggers via `MarketControlling`
 
 **Learns:** actors, AsyncStream, determinism, LSP & ISP.
 

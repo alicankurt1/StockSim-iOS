@@ -42,3 +42,11 @@ Hayır. Interactor ve Presenter da `@MainActor` olacak: VIP döngüsü UI'ı bes
 
 **OCP: `Portfolio`'ya `if order.type == .market ... else if .limit ...` yazsaydık ne kaybederdik?**
 Her yeni emir tipinde çalışan ve test edilmiş `Portfolio`'yu açıp değiştirmek gerekirdi; `Portfolio` her emir tipinin fiyat kuralını da bilmek zorunda kalırdı (SRP ihlali). Bunun yerine `Portfolio` fiyatı `OrderType` protokolüne soruyor. Yeni emir tipi = yeni bir dosya, `Portfolio` değişmez. "Genişlemeye açık, değişime kapalı."
+
+## Phase 2 — Market simulator
+
+**`MarketSimulator`'ı `actor` yerine `class` yapsaydık Swift 6 ne derdi?**
+Class'taki değişen durum (`var prices`) birden fazla yerden (fiyat döngüsü, ekranlar, debug menüsü) aynı anda erişilince data race oluşur. Swift 6 bunu çalışma anında değil derleme anında yakalar: `MarketDataProviding` `Sendable` istiyor, değişen alanları olan class `Sendable` olamaz, kod derlenmez. Alternatifler: kilit + `@unchecked Sendable` (güvenliği derleyici değil biz garanti ederiz) ya da `@MainActor class` (hesaplar main thread'e biner). Actor erişimleri sıraya koyar; bedeli dışarıdan her çağrının `await` olması.
+
+**Testte neden saniyelerce beklemiyoruz?**
+Bekleme davranışı (`sleep`) ve saat (`now`) dışarıdan closure olarak veriliyor (DI). Uygulamada gerçek `Task.sleep`, testte hiç beklemeyen bir closure. Testler ayrıca `tick()`'i doğrudan çağırıyor. Aynı seed aynı fiyat yolunu verdiği için sonuçlar tekrarlanabilir.
