@@ -169,9 +169,9 @@ public enum ChartRange: String, CaseIterable { case day, week, month, year }  //
 **Learns:** VIP routing, drawing approaches.
 
 ### Phase 6 — Candlestick + crosshair (~5 h) ✍️
-- [ ] `ChartRenderer` protocol; line and candle renderers
-- [ ] Crosshair with pan / long-press, value label, haptics
-- [ ] Nearest-point lookup with binary search (tested)
+- [x] `ChartRenderer` protocol; line and candle renderers
+- [x] Crosshair with pan / long-press, value label, haptics
+- [x] Nearest-point lookup with binary search (tested)
 
 **Learns:** OCP, gestures, hit-testing.
 

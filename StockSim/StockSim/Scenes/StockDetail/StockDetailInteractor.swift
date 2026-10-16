@@ -5,6 +5,7 @@ protocol StockDetailBusinessLogic {
     func load(request: StockDetail.Load.Request) async
     /// Akış bitene ya da çağıran Task iptal edilene kadar döner.
     func startLiveUpdates(request: StockDetail.Update.Request) async
+    func selectPoint(request: StockDetail.Select.Request)
 }
 
 /// Önceki ekranın Router'ı buraya yazar (DataPassing). `AnyObject`: Router referansla günceller.
@@ -23,6 +24,7 @@ final class StockDetailInteractor: StockDetailBusinessLogic, StockDetailDataStor
 
     private var range: ChartRange = .day
     private var candles: [Candle] = []
+    private var lastQuote: Quote?
 
     init(presenter: StockDetailPresentationLogic, worker: StockDetailWorking) {
         self.presenter = presenter
@@ -49,6 +51,7 @@ final class StockDetailInteractor: StockDetailBusinessLogic, StockDetailDataStor
             }
 
             candles = loadedCandles
+            lastQuote = loadedQuote
             presenter.presentDetail(response: StockDetail.Load.Response(
                 instrument: instrument, quote: loadedQuote, candles: loadedCandles, range: request.range
             ))
@@ -64,8 +67,17 @@ final class StockDetailInteractor: StockDetailBusinessLogic, StockDetailDataStor
 
         for await update in updates {
             guard case let .quote(quote) = update, quote.symbol == instrument.symbol else { continue }
+            lastQuote = quote
             updateLastCandle(with: quote)
             presenter.presentQuoteUpdate(response: StockDetail.Update.Response(quote: quote, candles: candles, range: range))
+        }
+    }
+
+    func selectPoint(request: StockDetail.Select.Request) {
+        if let index = request.index, candles.indices.contains(index), let first = candles.first {
+            presenter.presentSelection(response: .point(candles[index], rangeStart: first.open, range: range))
+        } else if let instrument, let lastQuote {
+            presenter.presentSelection(response: .cleared(name: instrument.name, quote: lastQuote))
         }
     }
 

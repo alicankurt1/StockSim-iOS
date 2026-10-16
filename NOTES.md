@@ -96,5 +96,22 @@ VC sadece "bu hisse seçildi" der: `router.routeToStockDetail(symbol:)`. Router 
 **`draw(_:)` mı `CAShapeLayer` mı? İkisi birden.**
 Nadiren değişen arka plan (ızgara) `draw(_:)` ile Core Graphics'te çizilir; UIKit açık/koyu mod değişince `draw` olan view'ı kendisi yeniden çizer. Her saniye değişen fiyat çizgisi `CAShapeLayer`; sadece path güncellenir. Aralık değişiminde `strokeEnd` 0 → 1 animasyonu çizgiyi "çizerek" getirir.
 
+**Watchlist VC doğrudan `detailVC.instrument = ...` deseydi ne kaybederdik?**
+VC hedef ekranın iç yapısını bilmek zorunda kalırdı (sıkı bağımlılık; detay değişince Watchlist de değişir). Veri bulma + ekran kurma + geçiş VC'ye yüklenirdi (SRP ihlali). Router'da olunca geçiş mantığı tek yerde durur ve sahte bir hedef DataStore ile UI'sız test edilir.
+
 **Reentrancy: hızlı aralık değişiminde eski sonuç neden ekranı ezmez?**
 `await` noktasında başka işler araya girebilir. Kullanıcı 1Y'ye basıp hemen 1M'ye geçerse, 1Y'nin geç gelen cevabı 1M'yi ezebilirdi. Interactor `await` sonrası "istenen aralık hâlâ güncel aralık mı?" diye kontrol eder; değilse sonucu atar.
+
+## Phase 6 — Mum grafik + crosshair
+
+**Neden `ChartView` içine `if style == .candle` yazmadık da ayrı renderer yazdık? (OCP)**
+`if`'li yaklaşımda her yeni grafik tipi (alan, OHLC çubuk…) çalışan `ChartView`'ı açıp değiştirmeyi gerektirirdi; tüm tiplerin çizim kodu tek dosyada büyürdü (SRP ihlali). `ChartView` sadece `ChartRenderer` protokolünü bilir: ızgara, ölçek, crosshair ortak; "nasıl çizilir" renderer'da. Yeni tip = yeni bir dosya, `ChartView` değişmez. Renderer'lar UIKit değil QuartzCore kullandığı için macOS'ta test edilir.
+
+**Parmağın altındaki nokta neden ikili aramayla bulunur?**
+Noktalar soldan sağa sıralı. Tek tek gezmek O(n); her adımda aralığı ikiye bölmek O(log n). ~250 nokta için her parmak hareketinde ~8 karşılaştırma.
+
+**Crosshair VIP'te nasıl akar?**
+Grafik sadece "şu indeks seçildi" der (UI olayı). VC bunu Interactor'a iletir (`selectPoint`), Interactor seçili mumu ve aralık başlangıcını Presenter'a verir, Presenter fiyat/tarih/değişimi formatlar. Formatlama yine UIKit'siz test edilir.
+
+**Mum grafikte neden yüzlerce katman değil 4 katman?**
+Her mum için ayrı katman = yüzlerce CALayer, her biri ayrı bellek ve çizim maliyeti. Yükselen/düşen gövdeler ve fitiller için birer `CAShapeLayer` (toplam 4); her biri tüm mumları tek path'te çizer.
