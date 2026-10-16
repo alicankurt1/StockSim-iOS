@@ -7,11 +7,12 @@ import Domain
 @MainActor
 struct AppAssemblerTests {
 
-    @Test func rootIsNavigationControllerWithWatchlist() throws {
-        let root = AppAssembler().makeRootViewController()
+    @Test func rootHasWatchlistAndPortfolioTabs() throws {
+        let assembler = AppAssembler(portfolioStore: PortfolioStore())
+        let root = try #require(assembler.makeRootViewController() as? UITabBarController)
 
-        let navigationController = try #require(root as? UINavigationController)
-        #expect(navigationController.topViewController?.title == "Watchlist")
+        let titles = root.viewControllers?.compactMap { ($0 as? UINavigationController)?.topViewController?.title }
+        #expect(titles == ["Watchlist", "Portfolio"])
     }
 
     @Test func marketKitIsLinked() {

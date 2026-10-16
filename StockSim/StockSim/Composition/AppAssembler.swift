@@ -1,6 +1,7 @@
 import UIKit
 import Domain
 import MarketSimulator
+import Persistence
 
 // Composition root: somut tiplerin oluşturulduğu TEK yer (DIP).
 // Sahneler sadece protokolleri bilir; gerçek mi sahte mi veri kaynağı kullanılacağı,
@@ -13,15 +14,38 @@ final class AppAssembler {
     /// Tek sanal hesap: tüm ekranlar aynı actor'ü paylaşır.
     private let portfolioStore: PortfolioStoring
 
-    init(market: MarketSimulator = MarketSimulator(), portfolioStore: PortfolioStoring = PortfolioStore()) {
+    init(market: MarketSimulator = MarketSimulator(), portfolioStore: PortfolioStoring = AppAssembler.makePortfolioStore()) {
         self.market = market
         self.portfolioStore = portfolioStore
     }
 
+    /// Hesap cihazda bir JSON dosyasında kalıcı. Domain sadece `PortfolioRepository`'yi bilir;
+    /// dosya mı, bellek mi burada seçilir (DIP). `-inMemoryPortfolio`: UI testleri temiz başlasın diye.
+    static func makePortfolioStore() -> PortfolioStoring {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard !arguments.contains("-inMemoryPortfolio"), let repository = try? FilePortfolioRepository.defaultLocation() else {
+            return PortfolioStore()
+        }
+        return PortfolioStore(repository: repository)
+    }
+
+    /// Alt sekmeler: her sekme kendi navigation stack'ine sahip.
     func makeRootViewController() -> UIViewController {
         Task { await market.start() }
 
-        let navigationController = UINavigationController(rootViewController: makeWatchlist())
+        let watchlist = makeNavigationController(root: makeWatchlist())
+        watchlist.tabBarItem = UITabBarItem(title: "Watchlist", image: UIImage(systemName: "chart.line.uptrend.xyaxis"), tag: 0)
+        let holdings = makeNavigationController(root: makeHoldings())
+        holdings.tabBarItem = UITabBarItem(title: "Portfolio", image: UIImage(systemName: "briefcase.fill"), tag: 1)
+
+        let tabBarController = UITabBarController()
+        tabBarController.viewControllers = [watchlist, holdings]
+        tabBarController.tabBar.tintColor = Theme.Color.accent
+        return tabBarController
+    }
+
+    private func makeNavigationController(root: UIViewController) -> UINavigationController {
+        let navigationController = UINavigationController(rootViewController: root)
         navigationController.navigationBar.prefersLargeTitles = true
         Theme.style(navigationController.navigationBar)
         return navigationController
@@ -53,6 +77,17 @@ final class AppAssembler {
         presenter.viewController = viewController
         router.viewController = viewController
         return (viewController, interactor)
+    }
+
+    func makeHoldings() -> UIViewController {
+        let presenter = HoldingsPresenter()
+        let interactor = HoldingsInteractor(presenter: presenter, worker: HoldingsWorker(market: market, portfolio: portfolioStore))
+        let router = HoldingsRouter(dataStore: interactor, makeStockDetail: { [unowned self] in self.makeStockDetail() })
+        let viewController = HoldingsViewController(interactor: interactor, router: router)
+
+        presenter.viewController = viewController
+        router.viewController = viewController
+        return viewController
     }
 
     func makeTradeTicket() -> (viewController: UIViewController, dataStore: TradeTicketDataStore) {

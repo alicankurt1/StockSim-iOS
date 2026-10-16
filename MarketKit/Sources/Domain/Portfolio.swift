@@ -1,9 +1,11 @@
 /// Sanal hesap: nakit, pozisyonlar ve işlem geçmişi.
 ///
 /// Değer tipi (struct): her değişiklik yeni bir kopya üretir. Paylaşılan, eşzamanlı
-/// erişilen hali Phase 7'de bir actor (`PortfolioStore`) içinde tutulacak.
+/// erişilen hali `PortfolioStore` actor'ünde tutulur.
 public struct Portfolio: Sendable, Equatable {
 
+    /// Hesabın başlangıç nakdi: toplam kâr/zarar buna göre hesaplanır.
+    public let startingCash: Money
     public private(set) var cash: Money
     /// Satılıp sıfırlanan pozisyonlar da burada kalır; gerçekleşen K/Z kaybolmasın diye.
     public private(set) var positions: [Symbol: Position]
@@ -11,9 +13,23 @@ public struct Portfolio: Sendable, Equatable {
     public private(set) var trades: [Trade]
 
     public init(cash: Money) {
+        self.startingCash = cash
         self.cash = cash
         self.positions = [:]
         self.trades = []
+    }
+
+    /// Kaydedilmiş bir hesabı geri yüklemek için (Persistence).
+    public init(startingCash: Money, cash: Money, positions: [Position], trades: [Trade]) {
+        self.startingCash = startingCash
+        self.cash = cash
+        self.positions = Dictionary(positions.map { ($0.symbol, $0) }, uniquingKeysWith: { _, latest in latest })
+        self.trades = trades
+    }
+
+    /// Nakit + pozisyonlar − başlangıç nakdi: hesabın açıldığından beri toplam kâr/zarar.
+    public func totalProfitLoss(prices: [Symbol: Money]) -> Money {
+        totalValue(prices: prices) - startingCash
     }
 
     /// Elde adet olan pozisyonlar, hisse koduna göre sıralı.

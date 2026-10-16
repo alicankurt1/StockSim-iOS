@@ -28,7 +28,7 @@ See [PLAN.md](PLAN.md) for architecture and phases.
 | 5 | Stock detail + line chart | ✅ Done |
 | 6 | Candlestick + crosshair | ✅ Done |
 | 7 | Trading | ✅ Done |
-| 8 | Portfolio, history, persistence | ⏳ |
+| 8 | Portfolio, history, persistence | ✅ Done |
 | 9 | Real market data | ⏳ |
 | 10 | What-if tracker | ⏳ |
 | 11 | Edge cases in the app | ⏳ |
