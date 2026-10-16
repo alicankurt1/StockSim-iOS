@@ -51,14 +51,14 @@ struct WatchlistPresenterTests {
 
     /// (fiyat, önceki kapanış, beklenen fiyat metni, beklenen değişim metni, beklenen yön)
     @Test(arguments: [
-        ("287.50", "284.25", "₺287,50", "+%1,14", Watchlist.PriceTrend.up),
+        ("287.50", "284.25", "₺287,50", "+%1,14", PriceTrend.up),
         ("90", "100", "₺90,00", "-%10,00", .down),
         ("50", "50", "₺50,00", "%0,00", .flat),
         ("1234.5", "1000", "₺1.234,50", "+%23,45", .up),
     ])
     func rowFormatsPriceChangeAndTrend(
         price: String, previousClose: String,
-        expectedPrice: String, expectedChange: String, expectedTrend: Watchlist.PriceTrend
+        expectedPrice: String, expectedChange: String, expectedTrend: PriceTrend
     ) {
         let row = WatchlistPresenter().makeRow(instrument: thyao, quote: quote(price, previousClose: previousClose))
 

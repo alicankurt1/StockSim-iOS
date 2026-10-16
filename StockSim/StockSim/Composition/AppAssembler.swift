@@ -31,13 +31,25 @@ final class AppAssembler {
     func makeWatchlist() -> UIViewController {
         let presenter = WatchlistPresenter()
         let interactor = WatchlistInteractor(presenter: presenter, worker: makeWatchlistWorker())
-        let router = WatchlistRouter(dataStore: interactor)
+        let router = WatchlistRouter(dataStore: interactor, makeStockDetail: { [unowned self] in self.makeStockDetail() })
         let viewController = WatchlistViewController(interactor: interactor, router: router)
 
         // Geri bağlantılar weak: VC → Interactor → Presenter ⇢ VC, VC → Router ⇢ VC
         presenter.viewController = viewController
         router.viewController = viewController
         return viewController
+    }
+
+    /// Detay sahnesini kurar. Router'a veri yazabilsin diye DataStore'u (Interactor) da döner.
+    func makeStockDetail() -> (viewController: UIViewController, dataStore: StockDetailDataStore) {
+        let presenter = StockDetailPresenter()
+        let interactor = StockDetailInteractor(presenter: presenter, worker: StockDetailWorker(market: market))
+        let router = StockDetailRouter(dataStore: interactor)
+        let viewController = StockDetailViewController(interactor: interactor, router: router)
+
+        presenter.viewController = viewController
+        router.viewController = viewController
+        return (viewController, interactor)
     }
 
     /// `-slowLoading` argümanıyla açılırsa Worker'ı geciktiren sarmalayıcıyla kurar (skeleton'ı görmek için).

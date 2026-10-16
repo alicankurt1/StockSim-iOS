@@ -161,10 +161,10 @@ public enum ChartRange: String, CaseIterable { case day, week, month, year }  //
 **Learns:** Core Animation basics, drawing vs layout, `@available`.
 
 ### Phase 5 — Stock detail + line chart (~5 h) ✍️
-- [ ] Router + DataStore / DataPassing (router tests)
-- [ ] `ChartScale` (data ↔ points), tested
-- [ ] `LineChartView` with gradient fill; range selector 1G / 1H / 1A / 1Y
-- [ ] Core Graphics (`draw(_:)`) vs `CAShapeLayer` comparison
+- [x] Router + DataStore / DataPassing (router tests)
+- [x] `ChartScale` (data ↔ points), tested
+- [x] `LineChartView` with gradient fill; range selector 1D / 1W / 1M / 1Y
+- [x] Core Graphics (`draw(_:)`) vs `CAShapeLayer` comparison
 
 **Learns:** VIP routing, drawing approaches.
 

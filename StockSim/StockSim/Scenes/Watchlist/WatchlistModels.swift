@@ -68,9 +68,4 @@ enum Watchlist {
         /// Sparkline değerleri. Sadece sayı: nasıl çizileceği View'ın işi.
         let sparkline: [Double]
     }
-
-    /// Renk kararı burada enum; `UIColor`'a çevirmek View'ın işi (Presenter UIKit bilmez).
-    enum PriceTrend {
-        case up, down, flat
-    }
 }

@@ -50,8 +50,7 @@ final class WatchlistPresenter: WatchlistPresentationLogic {
 
     /// Bir hisseyi ekrana hazır satıra çevirir.
     func makeRow(instrument: Instrument, quote: Quote?, sparkline: [Money] = []) -> Watchlist.Row {
-        // Çizim için Double yeterli; hassas para hesabı burada yapılmıyor.
-        let sparklineValues = sparkline.map { NSDecimalNumber(decimal: $0.amount).doubleValue }
+        let sparklineValues = sparkline.map(PriceFormatting.chartValue)
 
         // Fiyat henüz gelmediyse yer tutucu göster.
         guard let quote else {
@@ -72,9 +71,9 @@ final class WatchlistPresenter: WatchlistPresentationLogic {
             symbol: instrument.symbol.rawValue,
             monogram: Self.monogram(for: instrument.symbol),
             name: instrument.name,
-            price: Self.formatPrice(quote.price),
-            change: Self.formatChangePercent(quote.changePercent),
-            trend: Self.trend(for: quote.changePercent),
+            price: PriceFormatting.price(quote.price),
+            change: PriceFormatting.changePercent(quote.changePercent),
+            trend: PriceTrend(changePercent: quote.changePercent),
             sparkline: sparklineValues
         )
     }
@@ -83,43 +82,4 @@ final class WatchlistPresenter: WatchlistPresentationLogic {
         String(symbol.rawValue.prefix(2))
     }
 
-    /// Renk kararı: sadece yön. Hangi rengin çizileceğine VC karar verir.
-    private static func trend(for changePercent: Decimal) -> Watchlist.PriceTrend {
-        if changePercent > 0 { return .up }
-        if changePercent < 0 { return .down }
-        return .flat
-    }
-
-    // MARK: - Formatlama (hazır)
-
-    /// "₺1.234,50": Türk lirası, Türkçe sayı biçimi.
-    private static let priceFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.locale = Locale(identifier: "tr_TR")
-        formatter.currencyCode = "TRY"
-        return formatter
-    }()
-
-    /// "%1,14": değer zaten yüzde olduğu için 100 ile çarpılmaz (multiplier = 1).
-    private static let percentFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .percent
-        formatter.locale = Locale(identifier: "tr_TR")
-        formatter.multiplier = 1
-        formatter.minimumFractionDigits = 2
-        formatter.maximumFractionDigits = 2
-        formatter.roundingMode = .halfUp
-        return formatter
-    }()
-
-    static func formatPrice(_ money: Money) -> String {
-        priceFormatter.string(from: money.amount as NSDecimalNumber) ?? "—"
-    }
-
-    /// İşaretli yüzde: "+%1,14", "-%0,52", "%0,00".
-    static func formatChangePercent(_ percent: Decimal) -> String {
-        let text = percentFormatter.string(from: percent as NSDecimalNumber) ?? ""
-        return percent > 0 ? "+" + text : text
-    }
 }

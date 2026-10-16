@@ -25,7 +25,7 @@ See [PLAN.md](PLAN.md) for architecture and phases.
 | 2 | Market simulator | ✅ Done |
 | 3 | Watchlist scene (VIP) | ✅ Done |
 | 4 | Sparkline | ✅ Done |
-| 5 | Stock detail + line chart | ⏳ |
+| 5 | Stock detail + line chart | ✅ Done |
 | 6 | Candlestick + crosshair | ⏳ |
 | 7 | Trading | ⏳ |
 | 8 | Portfolio, history, persistence | ⏳ |

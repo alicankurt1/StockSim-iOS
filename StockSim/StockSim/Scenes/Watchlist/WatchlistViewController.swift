@@ -80,6 +80,7 @@ final class WatchlistViewController: UIViewController {
         collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: Self.makeLayout())
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         collectionView.backgroundColor = Theme.Color.background
+        collectionView.delegate = self
         view.addSubview(collectionView)
     }
 
@@ -113,6 +114,19 @@ final class WatchlistViewController: UIViewController {
         dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView) { collectionView, indexPath, id in
             collectionView.dequeueConfiguredReusableCell(using: registration, for: indexPath, item: id)
         }
+    }
+}
+
+// MARK: - Seçim
+
+extension WatchlistViewController: UICollectionViewDelegate {
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+        // Skeleton kutusuna dokunulursa bir şey yapma.
+        guard case let .stock(symbol) = dataSource.itemIdentifier(for: indexPath) else { return }
+        // VC nereye gidileceğini bilmez; sadece Router'a "bu hisse seçildi" der.
+        router.routeToStockDetail(symbol: symbol)
     }
 }
 

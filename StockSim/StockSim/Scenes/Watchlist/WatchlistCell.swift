@@ -38,6 +38,16 @@ final class WatchlistCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
+    /// Dokunulurken kart hafifçe küçülür: basılma hissi.
+    override var isHighlighted: Bool {
+        didSet {
+            UIView.animate(withDuration: 0.15, delay: 0, options: [.allowUserInteraction, .beginFromCurrentState]) {
+                self.transform = self.isHighlighted ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
+                self.alpha = self.isHighlighted ? 0.85 : 1
+            }
+        }
+    }
+
     // MARK: - Durumlar
 
     func configure(with row: Watchlist.Row) {
@@ -215,17 +225,6 @@ final class WatchlistCell: UICollectionViewCell {
         // `layer.borderColor` CGColor'dır; mod değişiminde kendiliğinden güncellenmez.
         if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
             contentView.layer.borderColor = Theme.Color.border.resolvedColor(with: traitCollection).cgColor
-        }
-    }
-}
-
-private extension Watchlist.PriceTrend {
-    /// Yönün rengi. Bu eşleme View katmanında; Presenter sadece yönü bilir.
-    var color: UIColor {
-        switch self {
-        case .up: Theme.Color.up
-        case .down: Theme.Color.down
-        case .flat: Theme.Color.textSecondary
         }
     }
 }
