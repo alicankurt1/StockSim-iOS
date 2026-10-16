@@ -87,3 +87,14 @@ Hedef iOS 16 ama iOS 17'de yeni API var (`registerForTraitChanges`). `if #availa
 
 **CALayer renkleri neden elle güncellenir?**
 Katmanlar `CGColor` kullanır; `CGColor` dinamik değildir, açık/koyu mod değişince kendiliğinden güncellenmez. `UIColor` saklanır, mod değişince `resolvedColor(with:)` ile yeniden çözülür.
+
+## Phase 5 — Hisse detayı + çizgi grafik
+
+**Clean Swift'te ekranlar arası veri nasıl taşınır?**
+VC sadece "bu hisse seçildi" der: `router.routeToStockDetail(symbol:)`. Router iki adım yapar: (1) DataPassing: kaynak sahnenin DataStore'undan (Watchlist Interactor) okur, hedef sahnenin DataStore'una (Detail Interactor) yazar; (2) Navigation: ekranı push eder. Router hedef sahneyi kendisi kurmaz, composition root'tan bir fabrika closure'ı ile alır (DIP); testte fabrika sahte bir DataStore döner.
+
+**`draw(_:)` mı `CAShapeLayer` mı? İkisi birden.**
+Nadiren değişen arka plan (ızgara) `draw(_:)` ile Core Graphics'te çizilir; UIKit açık/koyu mod değişince `draw` olan view'ı kendisi yeniden çizer. Her saniye değişen fiyat çizgisi `CAShapeLayer`; sadece path güncellenir. Aralık değişiminde `strokeEnd` 0 → 1 animasyonu çizgiyi "çizerek" getirir.
+
+**Reentrancy: hızlı aralık değişiminde eski sonuç neden ekranı ezmez?**
+`await` noktasında başka işler araya girebilir. Kullanıcı 1Y'ye basıp hemen 1M'ye geçerse, 1Y'nin geç gelen cevabı 1M'yi ezebilirdi. Interactor `await` sonrası "istenen aralık hâlâ güncel aralık mı?" diye kontrol eder; değilse sonucu atar.

@@ -1,18 +1,42 @@
 import UIKit
+import Domain
 
-/// Ekranlar arası geçişler. Phase 5'te hisse detayına geçiş buraya gelecek.
+/// Ekranlar arası geçişler.
 @MainActor
-protocol WatchlistRoutingLogic {}
+protocol WatchlistRoutingLogic {
+    func routeToStockDetail(symbol: Symbol)
+}
+
+/// Hedef ekranı kuran fabrika: VC'yi ve veri yazılacak DataStore'unu birlikte verir.
+/// Router somut sahneyi kendisi kurmaz; composition root'tan alır (DIP).
+typealias StockDetailFactory = @MainActor () -> (viewController: UIViewController, dataStore: StockDetailDataStore)
 
 @MainActor
 final class WatchlistRouter: WatchlistRoutingLogic {
 
     /// `weak`: VC zaten Router'ı tutuyor.
     weak var viewController: UIViewController?
-    /// Detay ekranına veri taşırken okunacak (DataPassing).
+    /// Kaynak veri: hangi hisseler yüklü.
     let dataStore: WatchlistDataStore
+    private let makeStockDetail: StockDetailFactory
 
-    init(dataStore: WatchlistDataStore) {
+    init(dataStore: WatchlistDataStore, makeStockDetail: @escaping StockDetailFactory) {
         self.dataStore = dataStore
+        self.makeStockDetail = makeStockDetail
+    }
+
+    /// Clean Swift'in iki adımı:
+    /// 1. **DataPassing:** kaynak DataStore'dan oku → hedef DataStore'a yaz.
+    /// 2. **Navigation:** hedef ekranı aç.
+    func routeToStockDetail(symbol: Symbol) {
+        guard let instrument = dataStore.instruments.first(where: { $0.symbol == symbol }) else { return }
+
+        let destination = makeStockDetail()
+        passData(instrument, to: destination.dataStore)
+        viewController?.navigationController?.pushViewController(destination.viewController, animated: true)
+    }
+
+    private func passData(_ instrument: Instrument, to destination: StockDetailDataStore) {
+        destination.instrument = instrument
     }
 }
