@@ -9,6 +9,8 @@ import Domain
 private struct WorkerStub: WatchlistWorking {
     var result: Result<[Instrument], any Error>
     var quotes: [Quote] = []
+    /// Canlı akışta sırayla yollanacak olaylar; sonra akış biter.
+    var updates: [MarketUpdate] = []
 
     func fetchInstruments() async throws -> [Instrument] {
         try result.get()
@@ -16,6 +18,14 @@ private struct WorkerStub: WatchlistWorking {
 
     func fetchQuotes(for symbols: [Symbol]) async throws -> [Quote] {
         quotes.filter { symbols.contains($0.symbol) }
+    }
+
+    func liveUpdates(for symbols: [Symbol]) async -> AsyncStream<MarketUpdate> {
+        // Sonlu akış: test `await` ettiğinde döngü biter ve sonuçlar kontrol edilebilir.
+        AsyncStream { continuation in
+            for update in updates { continuation.yield(update) }
+            continuation.finish()
+        }
     }
 }
 
@@ -39,6 +49,12 @@ private final class PresenterSpy: WatchlistPresentationLogic {
     func presentLoadError() {
         loadErrorCount += 1
         calls.append("error")
+    }
+
+    private(set) var quoteUpdates: [Watchlist.Update.Response] = []
+
+    func presentQuoteUpdate(response: Watchlist.Update.Response) {
+        quoteUpdates.append(response)
     }
 }
 
@@ -104,5 +120,36 @@ struct WatchlistInteractorTests {
 
         #expect(presenter.loadErrorCount == 1)
         #expect(presenter.presentedResponses.isEmpty)
+    }
+
+    // MARK: - Canlı akış
+
+    @Test func liveUpdatesForwardQuotesForLoadedInstruments() async {
+        let thyaoQuote = Quote(symbol: Symbol("THYAO"), price: Money(291), previousClose: Money(287), timestamp: .now)
+        let unknownQuote = Quote(symbol: Symbol("NOPE"), price: Money(1), previousClose: Money(1), timestamp: .now)
+        let presenter = PresenterSpy()
+        let worker = WorkerStub(
+            result: .success(instruments),
+            updates: [.quote(thyaoQuote), .feedInterrupted, .quote(unknownQuote), .halted(Symbol("ASELS"))]
+        )
+        let interactor = WatchlistInteractor(presenter: presenter, worker: worker)
+        await interactor.loadWatchlist(request: .init())
+
+        await interactor.startLiveUpdates(request: .init())
+
+        // Sadece listedeki hisselerin fiyatları Presenter'a gider; diğer olaylar şimdilik yok sayılır.
+        #expect(presenter.quoteUpdates.count == 1)
+        #expect(presenter.quoteUpdates.first?.instrument == instruments[0])
+        #expect(presenter.quoteUpdates.first?.quote == thyaoQuote)
+    }
+
+    @Test func liveUpdatesBeforeLoadForwardNothing() async {
+        let quote = Quote(symbol: Symbol("THYAO"), price: Money(291), previousClose: Money(287), timestamp: .now)
+        let presenter = PresenterSpy()
+        let interactor = WatchlistInteractor(presenter: presenter, worker: WorkerStub(result: .success(instruments), updates: [.quote(quote)]))
+
+        await interactor.startLiveUpdates(request: .init())
+
+        #expect(presenter.quoteUpdates.isEmpty)
     }
 }

@@ -21,6 +21,9 @@ final class WatchlistCell: UICollectionViewCell {
     private let contentStack = UIStackView()
     private let skeletonStack = UIStackView()
 
+    /// Son gösterilen satır: fiyat değişti mi diye karşılaştırmak için.
+    private var displayedRow: Watchlist.Row?
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setUpCard()
@@ -39,6 +42,10 @@ final class WatchlistCell: UICollectionViewCell {
         contentStack.isHidden = false
         skeletonStack.isHidden = true
 
+        // Aynı hisse ve fiyat değiştiyse kısa bir renk yanıp sönmesi (reconfigure sonrası).
+        let priceChanged = displayedRow?.id == row.id && displayedRow?.price != row.price
+        displayedRow = row
+
         monogramLabel.text = row.monogram
         symbolLabel.text = row.symbol
         nameLabel.text = row.name
@@ -53,9 +60,38 @@ final class WatchlistCell: UICollectionViewCell {
 
         isAccessibilityElement = true
         accessibilityLabel = "\(row.symbol), \(row.name), \(row.price), \(row.change)"
+
+        if priceChanged { flashPrice(color: color) }
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        // Hücre başka bir hisseye verilecek: eski hissenin animasyonu taşınmasın.
+        displayedRow = nil
+        priceLabel.layer.removeAllAnimations()
+        priceLabel.textColor = Theme.Color.textPrimary
+    }
+
+    /// Fiyat metni bir an yön renginde parlar, sonra normale döner.
+    ///
+    /// `textColor` UIView.animate ile animasyonlanamaz; bu yüzden cross-dissolve geçişi.
+    /// Geçiş, başladığı andaki ÇİZİLMİŞ görüntüden başlar: yeni renk önce ekrana
+    /// çizilsin diye geri dönüşü kısa bir gecikmeyle başlatıyoruz.
+    private func flashPrice(color: UIColor) {
+        priceLabel.textColor = color
+        let rowID = displayedRow?.id
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(250))
+            // Bu arada hücre başka bir hisseye verildiyse dokunma.
+            guard let self, self.displayedRow?.id == rowID else { return }
+            UIView.transition(with: self.priceLabel, duration: 0.5, options: [.transitionCrossDissolve, .allowUserInteraction]) {
+                self.priceLabel.textColor = Theme.Color.textPrimary
+            }
+        }
     }
 
     func showPlaceholder() {
+        displayedRow = nil
         contentStack.isHidden = true
         skeletonStack.isHidden = false
         isAccessibilityElement = true

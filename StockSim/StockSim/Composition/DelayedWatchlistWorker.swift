@@ -20,4 +20,8 @@ struct DelayedWatchlistWorker: WatchlistWorking {
     func fetchQuotes(for symbols: [Symbol]) async throws -> [Quote] {
         try await base.fetchQuotes(for: symbols)
     }
+
+    func liveUpdates(for symbols: [Symbol]) async -> AsyncStream<MarketUpdate> {
+        await base.liveUpdates(for: symbols)
+    }
 }

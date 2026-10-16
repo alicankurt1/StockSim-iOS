@@ -16,6 +16,12 @@ private final class DisplaySpy: WatchlistDisplayLogic {
     func displayLoadError(message: String) {
         errorMessages.append(message)
     }
+
+    private(set) var updatedRows: [Watchlist.Row] = []
+
+    func displayQuoteUpdate(viewModel: Watchlist.Update.ViewModel) {
+        updatedRows.append(viewModel.row)
+    }
 }
 
 private let thyao = Instrument(symbol: Symbol("THYAO"), name: "Türk Hava Yolları")
@@ -106,6 +112,16 @@ struct WatchlistPresenterTests {
         presenter.presentLoadError()
 
         #expect(display.errorMessages.count == 1)
+        #expect(display.viewModels.isEmpty)
+    }
+
+    @Test func presentQuoteUpdateSendsFormattedRow() {
+        let (presenter, display) = makePresenter()
+
+        presenter.presentQuoteUpdate(response: .init(instrument: thyao, quote: quote("287.50", previousClose: "284.25")))
+
+        #expect(display.updatedRows.map(\.price) == ["₺287,50"])
+        #expect(display.updatedRows.first?.trend == .up)
         #expect(display.viewModels.isEmpty)
     }
 }

@@ -29,6 +29,21 @@ enum Watchlist {
         }
     }
 
+    /// Canlı fiyat güncellemesi: tek bir satır değişir.
+    enum Update {
+        /// Ekran göründü, canlı akışı başlat.
+        struct Request {}
+
+        struct Response {
+            let instrument: Instrument
+            let quote: Quote
+        }
+
+        struct ViewModel {
+            let row: Row
+        }
+    }
+
     /// Listedeki bir öğe: ya yükleniyor kutusu (skeleton) ya da gerçek satır.
     /// Yükleniyor durumu da bir ViewModel; VC kendi kafasına göre spinner göstermez.
     enum Item: Hashable {

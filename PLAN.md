@@ -143,12 +143,12 @@ public enum ChartRange: String, CaseIterable { case day, week, month, year }  //
 **Learns:** actors, AsyncStream, determinism, LSP & ISP.
 
 ### Phase 3 — Watchlist scene, first VIP cycle (~6 h) ✍️
-- [ ] VIP template files
-- [ ] Loading state as a view model: skeleton rows with a reusable `ShimmerView`
-- [ ] Design system: `Theme` (navy / blue / black palette, typography, spacing), custom card cell
-- [ ] Compositional layout + diffable data source, `reconfigureItems` for live prices
-- [ ] Presenter formatting (currency, %, `PriceTrend`)
-- [ ] Interactor tests with presenter & worker spies; presenter tests with display spy
+- [x] VIP template files
+- [x] Loading state as a view model: skeleton rows with a reusable `ShimmerView`
+- [x] Design system: `Theme` (navy / blue / black palette, typography, spacing), custom card cell
+- [x] Compositional layout + diffable data source, `reconfigureItems` for live prices
+- [x] Presenter formatting (currency, %, `PriceTrend`)
+- [x] Interactor tests with presenter & worker spies; presenter tests with display spy
 
 **Learns:** VIP data flow, ISP, SRP, spies.
 

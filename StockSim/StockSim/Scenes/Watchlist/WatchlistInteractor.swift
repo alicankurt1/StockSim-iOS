@@ -4,6 +4,8 @@ import Domain
 @MainActor
 protocol WatchlistBusinessLogic {
     func loadWatchlist(request: Watchlist.Load.Request) async
+    /// Akış bitene ya da çağıran Task iptal edilene kadar döner.
+    func startLiveUpdates(request: Watchlist.Update.Request) async
 }
 
 /// Router'ın başka ekrana veri taşırken okuyacağı veriler (Phase 5'te kullanılacak).
@@ -39,6 +41,24 @@ final class WatchlistInteractor: WatchlistBusinessLogic, WatchlistDataStore {
             presenter.presentWatchlist(response: Watchlist.Load.Response(instruments: self.instruments, quotes: quotesBySymbol))
         } catch {
             presenter.presentLoadError()
+        }
+    }
+
+    func startLiveUpdates(request: Watchlist.Update.Request) async {
+        let instrumentsBySymbol = Dictionary(instruments.map { ($0.symbol, $0) }, uniquingKeysWith: { first, _ in first })
+        let updates = await worker.liveUpdates(for: Array(instrumentsBySymbol.keys))
+
+        // `for await`: her yeni olayda döngü bir tur döner. Çağıran Task iptal edilince
+        // (ekran kapanınca) akış biter, döngüden çıkılır ve simülatör aboneliği temizler.
+        for await update in updates {
+            switch update {
+            case let .quote(quote):
+                guard let instrument = instrumentsBySymbol[quote.symbol] else { continue }
+                presenter.presentQuoteUpdate(response: Watchlist.Update.Response(instrument: instrument, quote: quote))
+            case .halted, .resumed, .feedInterrupted, .feedRestored:
+                // Phase 11'de: işlem durdu rozeti ve "veri eski" uyarısı.
+                continue
+            }
         }
     }
 }

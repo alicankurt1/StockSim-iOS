@@ -7,6 +7,7 @@ protocol WatchlistPresentationLogic {
     func presentLoading()
     func presentWatchlist(response: Watchlist.Load.Response)
     func presentLoadError()
+    func presentQuoteUpdate(response: Watchlist.Update.Response)
 }
 
 /// Presenter: Domain verisini ekrana hazır ViewModel'e çevirir (format, renk kararı).
@@ -34,6 +35,11 @@ final class WatchlistPresenter: WatchlistPresentationLogic {
 
     func presentLoadError() {
         viewController?.displayLoadError(message: "Couldn't load the watchlist.")
+    }
+
+    func presentQuoteUpdate(response: Watchlist.Update.Response) {
+        let row = makeRow(instrument: response.instrument, quote: response.quote)
+        viewController?.displayQuoteUpdate(viewModel: Watchlist.Update.ViewModel(row: row))
     }
 
     // MARK: - Satır

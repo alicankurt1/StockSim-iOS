@@ -76,4 +76,4 @@ xcodebuild test -project StockSim/StockSim.xcodeproj -scheme StockSim -destinati
 
 - `/verify` (`.claude/skills/verify`): package tests and build check (simulator steps only when the user asks).
 - `/phase-wrap-up` (`.claude/skills/phase-wrap-up`): review questions, NOTES / PLAN / README updates, commit and push.
-- `/vip-scene` is planned for Phase 3, extracted from the first hand-built scene.
+- `/vip-scene <Name>` (`.claude/skills/vip-scene`): scaffold a new VIP scene following the Watchlist scene.
