@@ -51,21 +51,16 @@ The repo is public from day one. Never write company names, interview references
 - Commit message format: `Phase N: <summary>`.
 - When a phase is done: push; the user opens and merges the PR on GitHub (`gh` is not installed).
 - Update the README Progress table and PLAN.md checkboxes in the same commit.
-- Verify every visual feature in the iOS Simulator with a screenshot. Collect short demo clips under `docs/media/`.
+- The user verifies visual features in the Simulator; collect their screenshots / short demo clips under `docs/media/`.
 
-## Mentor mode
+## Working mode: speed mode
 
-- **Learning focus:** Clean Swift (VIP), UIKit and custom drawing. Finance rules (average cost, P&L) and simulator math are not the goal: write them yourself (🤖) and summarize only the transferable concept.
-- Teaching format for ✍️ steps, **one new concept per step** (the user prefers short answers and gets lost in details):
-  1. Big picture: 3–4 sentences + a small diagram (why this piece exists, who talks to whom).
-  2. The single concept of the step (e.g. "why the presenter doesn't know UIKit").
-  3. The user writes the heart of the pattern (e.g. one interactor/presenter method, one layout section); Claude writes the surrounding plumbing.
-  4. One short check question: "explain it in your own words".
-- Tests for ✍️ steps: **Claude writes the tests** (they act as the spec), the user writes the production code. Run them first and show they are red; skeleton methods return deliberately wrong values (`.zero`, `false`) instead of `fatalError`, so tests fail without crashing.
-- If the user is stuck, give a hint first. Show the full solution only when they say "çözümü göster" or ask Claude to write it.
-- 🤖 items: write the code and explain in at most 3–5 short bullets.
-- Keep replies short and scannable.
-- At the end of each phase ask 2–3 interview-style questions (e.g. "Which SOLID principle did we apply here?", "Why doesn't the presenter know UIKit?"). Correct the answers and add them to `NOTES.md`.
+- **Claude writes the code** (production and tests) for every phase. After each step, explain it in **3–5 short bullets**: what was built, why, and which SOLID / Clean Swift / UIKit concept it shows.
+- **Learning focus:** Clean Swift (VIP), UIKit and custom drawing. Finance rules and simulator math get only a one-line summary.
+- The user runs the app in Xcode (⌘R) and reports errors or screenshots. **Do not launch the iOS Simulator or run UI tests**; build-check with `xcodebuild build -destination 'generic/platform=iOS Simulator'` and run package tests.
+- Keep replies short and scannable; the user prefers short answers.
+- At the end of each phase ask **one** short interview-style question. If the user asks, answer it yourself. Add the corrected answer to `NOTES.md`.
+- `NOTES.md` doubles as raw material for a Medium article: per phase, 2–3 concepts worth explaining, in Turkish.
 
 ## Commands
 
@@ -79,6 +74,6 @@ xcodebuild test -project StockSim/StockSim.xcodeproj -scheme StockSim -destinati
 
 ## Project skills
 
-- `/verify` (`.claude/skills/verify`): package tests, app tests, simulator screenshot.
+- `/verify` (`.claude/skills/verify`): package tests and build check (simulator steps only when the user asks).
 - `/phase-wrap-up` (`.claude/skills/phase-wrap-up`): review questions, NOTES / PLAN / README updates, commit and push.
-- `/vip-scene` is planned for Phase 3, extracted from the first hand-built scene.
+- `/vip-scene <Name>` (`.claude/skills/vip-scene`): scaffold a new VIP scene following the Watchlist scene.

@@ -50,3 +50,26 @@ Class'taki değişen durum (`var prices`) birden fazla yerden (fiyat döngüsü,
 
 **Testte neden saniyelerce beklemiyoruz?**
 Bekleme davranışı (`sleep`) ve saat (`now`) dışarıdan closure olarak veriliyor (DI). Uygulamada gerçek `Task.sleep`, testte hiç beklemeyen bir closure. Testler ayrıca `tick()`'i doğrudan çağırıyor. Aynı seed aynı fiyat yolunu verdiği için sonuçlar tekrarlanabilir.
+
+## Phase 3 — Watchlist (ilk VIP sahnesi)
+
+**VIP döngüsü nedir?**
+Tek yönlü bir halka: VC → Interactor → Presenter → VC. VC gösterir ve olayları iletir; Interactor karar verir (Worker'dan veri alır, başarı/hata); Presenter biçimlendirir. Kimse geri dönüp diğerine soru sormaz. VIPER'dan farkı: orada Presenter merkezdir ve akış çift yönlüdür; VIP'te merkez yok, veri halka gibi döner. Router ekran geçişlerini ve DataStore üzerinden veri taşımayı üstlenir.
+
+**Interactor neden doğrudan VC'yi değil Presenter'ı çağırır?**
+Formatlama ayrı bir sorumluluk (SRP). Interactor ham veri (`Instrument`, `Money`) tutar; ekran string ve renk kararı ister. Interactor formatlasaydı iş kuralı ve görünüm karışırdı; VC formatlasaydı hesap UIKit'e girer ve test edilemezdi. Presenter araya girince iş kuralı ve görünüm bağımsız değişir, ikisi de UIKit olmadan test edilir.
+
+**Presenter neden UIKit bilmez?**
+Presenter rengi `UIColor.systemGreen` olarak değil `.up` olarak verir. Böylece formatlama ekran açmadan test edilir (`row.trend == .up`) ve görünüm kararı (hangi yeşil?) View'da kalır; tema değişince Presenter'a dokunulmaz. Presenter "ne", View "nasıl" gösterileceğine karar verir.
+
+**Skeleton (yükleniyor) durumu VIP'te nasıl modellenir?**
+Yükleniyor durumu da bir ViewModel: Interactor veri istemeden önce `presentLoading()` çağırır, Presenter placeholder öğeler üretir, hücre bunları `ShimmerView` (CAGradientLayer animasyonu) ile çizer. VC kendi kafasına göre spinner göstermez; davranış Presenter testinde UI'sız doğrulanır.
+
+**Decorator ile OCP**
+`DelayedWatchlistWorker` gerçek Worker'ı sarar ve isteği geciktirir (yavaş ağ taklidi). Ne Worker ne Interactor değişti; davranış sarmalayarak genişletildi.
+
+**Diffable'da kimlik olarak neden satırın tamamı değil hisse kodu?**
+Diffable öğeleri kimlikleriyle takip eder. Kimlik satırın tamamı olsaydı her fiyat değişimi yeni bir kimlik demek olurdu: "sil + ekle", hücre yeniden yaratılır, titreme olur. Kimlik = hisse kodu olunca fiyat değişimi aynı öğenin güncellenmesidir; `reconfigureItems` hücreyi yeniden yaratmadan içeriğini değiştirir (`reloadItems`'tan ucuz).
+
+**Canlı akış ve yaşam döngüsü**
+Interactor `for await` ile `AsyncStream`'i dinler. VC akışı `viewWillAppear`'da bir Task ile başlatır, `viewDidDisappear`'da iptal eder; iptal akışı bitirir ve abonelik temizlenir.

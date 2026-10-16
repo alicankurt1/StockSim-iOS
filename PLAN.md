@@ -4,8 +4,8 @@ A paper-trading stock app built to practice **Clean Swift (VIP)**, **SOLID**, **
 
 ## Legend
 
-- ✍️ — the heart of the pattern is written by me (one concept per step); Claude provides the big picture, the surrounding plumbing and the tests (as the spec), then reviews.
-- 🤖 — written by Claude and summarized briefly: only the transferable concept, not the finance/math details.
+- Speed mode (from Phase 3 on): Claude writes the code and explains each step in 3–5 bullets; I run the app and review. ✍️ marks phases whose concepts are the learning focus.
+- 🤖 — summarized in one line: only the transferable concept, not the finance/math details.
 
 **Learning focus:** Clean Swift (VIP), UIKit (programmatic layout, compositional layout, diffable, cells) and custom drawing. Finance rules and simulator math are 🤖 so they don't distract from that.
 - Every phase lives on its own branch `phase-N/<topic>` and ends with 2–3 review questions (answers go to `NOTES.md`).
@@ -79,6 +79,7 @@ A paper-trading stock app built to practice **Clean Swift (VIP)**, **SOLID**, **
 ```swift
 public protocol MarketDataProviding: Sendable {
     func instruments() async throws -> [Instrument]
+    func quotes(for symbols: [Symbol]) async throws -> [Quote]
     func updates(for symbols: [Symbol]) async -> AsyncStream<MarketUpdate>
     func history(for symbol: Symbol, range: ChartRange) async throws -> [Candle]
 }
@@ -142,10 +143,12 @@ public enum ChartRange: String, CaseIterable { case day, week, month, year }  //
 **Learns:** actors, AsyncStream, determinism, LSP & ISP.
 
 ### Phase 3 — Watchlist scene, first VIP cycle (~6 h) ✍️
-- [ ] VIP template files
-- [ ] Compositional layout + diffable data source, `reconfigureItems` for live prices
-- [ ] Presenter formatting (currency, %, `PriceTrend`)
-- [ ] Interactor tests with presenter & worker spies; presenter tests with display spy
+- [x] VIP template files
+- [x] Loading state as a view model: skeleton rows with a reusable `ShimmerView`
+- [x] Design system: `Theme` (navy / blue / black palette, typography, spacing), custom card cell
+- [x] Compositional layout + diffable data source, `reconfigureItems` for live prices
+- [x] Presenter formatting (currency, %, `PriceTrend`)
+- [x] Interactor tests with presenter & worker spies; presenter tests with display spy
 
 **Learns:** VIP data flow, ISP, SRP, spies.
 
@@ -188,6 +191,7 @@ public enum ChartRange: String, CaseIterable { case day, week, month, year }  //
 **Learns:** DIP (in-memory vs file store), persistence testing.
 
 ### Phase 9 — Real market data (~4–5 h)
+Yahoo's unofficial endpoint is fine for development and the demo; the data source is behind `MarketDataProviding`, so a licensed source can replace it before release.
 - [ ] `HTTPClient` protocol + `URLSession` implementation
 - [ ] `YahooMarketProvider` (delayed quotes + daily candles for BIST tickers)
 - [ ] Codable fixture tests (missing fields, `null` prices, holidays) — tests never hit the network
@@ -218,6 +222,13 @@ public enum ChartRange: String, CaseIterable { case day, week, month, year }  //
 ### Phase 13 — Polish & publish (~3 h)
 - [ ] Dark mode pass, basic accessibility
 - [ ] README GIFs, disclaimer, cleanup
+
+### Phase 14 — App Store release (~3–4 h)
+- [ ] App icon, launch screen, in-app disclaimer ("simulated, not investment advice")
+- [ ] Real-data mode decision: ship simulator-only unless a data source with redistribution rights is used (re-evaluate free / delayed APIs with clear terms before release)
+- [ ] Legal checklist: in-app and App Store disclaimers (simulation, delayed data, not investment advice), terms of use page, trademark check for ticker / company names
+- [ ] Privacy policy page (no data collected), App Privacy label, age rating
+- [ ] TestFlight build, App Store screenshots and description
 
 **Total:** ~50–60 h. Demo clips are collected under `docs/media/` at the end of each visual phase.
 

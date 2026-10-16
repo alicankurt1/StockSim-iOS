@@ -23,7 +23,7 @@ See [PLAN.md](PLAN.md) for architecture and phases.
 | 0 | Foundation | ✅ Done |
 | 1 | Domain (TDD) | ✅ Done |
 | 2 | Market simulator | ✅ Done |
-| 3 | Watchlist scene (VIP) | ⏳ |
+| 3 | Watchlist scene (VIP) | ✅ Done |
 | 4 | Sparkline | ⏳ |
 | 5 | Stock detail + line chart | ⏳ |
 | 6 | Candlestick + crosshair | ⏳ |
@@ -34,6 +34,7 @@ See [PLAN.md](PLAN.md) for architecture and phases.
 | 11 | Edge cases in the app | ⏳ |
 | 12 | Performance | ⏳ |
 | 13 | Polish & publish | ⏳ |
+| 14 | App Store release | ⏳ |
 
 ## Running tests
 
