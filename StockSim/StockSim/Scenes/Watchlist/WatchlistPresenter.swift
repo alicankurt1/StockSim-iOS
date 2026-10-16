@@ -28,7 +28,11 @@ final class WatchlistPresenter: WatchlistPresentationLogic {
 
     func presentWatchlist(response: Watchlist.Load.Response) {
         let items = response.instruments.map { instrument in
-            Watchlist.Item.stock(makeRow(instrument: instrument, quote: response.quotes[instrument.symbol]))
+            Watchlist.Item.stock(makeRow(
+                instrument: instrument,
+                quote: response.quotes[instrument.symbol],
+                sparkline: response.sparklines[instrument.symbol] ?? []
+            ))
         }
         viewController?.displayWatchlist(viewModel: Watchlist.Load.ViewModel(items: items))
     }
@@ -38,14 +42,17 @@ final class WatchlistPresenter: WatchlistPresentationLogic {
     }
 
     func presentQuoteUpdate(response: Watchlist.Update.Response) {
-        let row = makeRow(instrument: response.instrument, quote: response.quote)
+        let row = makeRow(instrument: response.instrument, quote: response.quote, sparkline: response.sparkline)
         viewController?.displayQuoteUpdate(viewModel: Watchlist.Update.ViewModel(row: row))
     }
 
     // MARK: - Satır
 
     /// Bir hisseyi ekrana hazır satıra çevirir.
-    func makeRow(instrument: Instrument, quote: Quote?) -> Watchlist.Row {
+    func makeRow(instrument: Instrument, quote: Quote?, sparkline: [Money] = []) -> Watchlist.Row {
+        // Çizim için Double yeterli; hassas para hesabı burada yapılmıyor.
+        let sparklineValues = sparkline.map { NSDecimalNumber(decimal: $0.amount).doubleValue }
+
         // Fiyat henüz gelmediyse yer tutucu göster.
         guard let quote else {
             return Watchlist.Row(
@@ -55,7 +62,8 @@ final class WatchlistPresenter: WatchlistPresentationLogic {
                 name: instrument.name,
                 price: "—",
                 change: "",
-                trend: .flat
+                trend: .flat,
+                sparkline: sparklineValues
             )
         }
 
@@ -66,7 +74,8 @@ final class WatchlistPresenter: WatchlistPresentationLogic {
             name: instrument.name,
             price: Self.formatPrice(quote.price),
             change: Self.formatChangePercent(quote.changePercent),
-            trend: Self.trend(for: quote.changePercent)
+            trend: Self.trend(for: quote.changePercent),
+            sparkline: sparklineValues
         )
     }
 

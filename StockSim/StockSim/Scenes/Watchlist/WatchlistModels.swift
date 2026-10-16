@@ -14,6 +14,8 @@ enum Watchlist {
             let instruments: [Instrument]
             /// Fiyatı henüz bilinmeyen hisse burada olmayabilir.
             let quotes: [Symbol: Quote]
+            /// Gün içi kapanışlar (sparkline için). Eksik olabilir.
+            var sparklines: [Symbol: [Money]] = [:]
         }
 
         /// Ekrana hazır sonuç: sadece string ve enum. View hiçbir şey hesaplamaz.
@@ -37,6 +39,8 @@ enum Watchlist {
         struct Response {
             let instrument: Instrument
             let quote: Quote
+            /// Son değeri canlı fiyatla güncellenmiş gün içi seri.
+            var sparkline: [Money] = []
         }
 
         struct ViewModel {
@@ -61,6 +65,8 @@ enum Watchlist {
         let price: String
         let change: String
         let trend: PriceTrend
+        /// Sparkline değerleri. Sadece sayı: nasıl çizileceği View'ın işi.
+        let sparkline: [Double]
     }
 
     /// Renk kararı burada enum; `UIColor`'a çevirmek View'ın işi (Presenter UIKit bilmez).

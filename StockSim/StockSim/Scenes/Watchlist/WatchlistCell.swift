@@ -1,4 +1,5 @@
 import UIKit
+import Charts
 
 /// İzleme listesi kartı.
 ///
@@ -17,6 +18,7 @@ final class WatchlistCell: UICollectionViewCell {
     private let nameLabel = UILabel()
     private let priceLabel = UILabel()
     private let changeLabel = PaddedLabel()
+    private let sparklineView = SparklineView()
 
     private let contentStack = UIStackView()
     private let skeletonStack = UIStackView()
@@ -57,6 +59,8 @@ final class WatchlistCell: UICollectionViewCell {
         let color = row.trend.color
         changeLabel.textColor = color
         changeLabel.backgroundColor = color.withAlphaComponent(0.15)
+        sparklineView.setValues(row.sparkline, color: color)
+        sparklineView.isHidden = row.sparkline.count < 2
 
         isAccessibilityElement = true
         accessibilityLabel = "\(row.symbol), \(row.name), \(row.price), \(row.change)"
@@ -135,16 +139,19 @@ final class WatchlistCell: UICollectionViewCell {
 
         contentStack.addArrangedSubview(monogramLabel)
         contentStack.addArrangedSubview(titles)
+        contentStack.addArrangedSubview(sparklineView)
         contentStack.addArrangedSubview(values)
         configureRowStack(contentStack)
 
         NSLayoutConstraint.activate([
             monogramLabel.widthAnchor.constraint(equalToConstant: 40),
             monogramLabel.heightAnchor.constraint(equalToConstant: 40),
+            sparklineView.widthAnchor.constraint(equalToConstant: 64),
+            sparklineView.heightAnchor.constraint(equalToConstant: 28),
         ])
     }
 
-    /// Skeleton, gerçek içerikle aynı iskelete sahip: rozet + iki çubuk solda, iki çubuk sağda.
+    /// Skeleton, gerçek içerikle aynı iskelete sahip: rozet, iki çubuk, grafik kutusu, iki çubuk.
     private func setUpSkeleton() {
         let monogram = ShimmerView(cornerRadius: 20)
         let left = verticalStack([shimmer(width: 64, height: 14), shimmer(width: 120, height: 11)], alignment: .leading)
@@ -152,6 +159,7 @@ final class WatchlistCell: UICollectionViewCell {
 
         skeletonStack.addArrangedSubview(monogram)
         skeletonStack.addArrangedSubview(left)
+        skeletonStack.addArrangedSubview(shimmer(width: 64, height: 28))
         skeletonStack.addArrangedSubview(right)
         configureRowStack(skeletonStack)
         skeletonStack.isHidden = true
@@ -170,9 +178,9 @@ final class WatchlistCell: UICollectionViewCell {
         stack.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(stack)
 
-        // Ortadaki sütun boşluğu doldursun, sağdaki sütun sağa yaslansın.
+        // Başlık sütunu boşluğu doldursun, sağdaki sütun sağa yaslansın.
         stack.arrangedSubviews[1].setContentHuggingPriority(.defaultLow, for: .horizontal)
-        stack.arrangedSubviews[2].setContentHuggingPriority(.required, for: .horizontal)
+        stack.arrangedSubviews.last?.setContentHuggingPriority(.required, for: .horizontal)
 
         NSLayoutConstraint.activate([
             stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Theme.Spacing.l),
