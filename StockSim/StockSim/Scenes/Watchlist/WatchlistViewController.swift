@@ -41,6 +41,7 @@ final class WatchlistViewController: UIViewController {
         self.router = router
         super.init(nibName: nil, bundle: nil)
         title = "Watchlist"
+        navigationItem.largeTitleDisplayMode = .always
     }
 
     @available(*, unavailable)
@@ -51,6 +52,9 @@ final class WatchlistViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = Theme.Color.background
+        // Navigation bar opak: içerik yine de bar'ın altına uzansın. Aksi halde büyük başlık
+        // küçülüp büyürken (detaya gidiş/dönüş) listenin çerçevesi değişir ve içerik kayar.
+        extendedLayoutIncludesOpaqueBars = true
         setUpCollectionView()
         setUpDataSource()
     }

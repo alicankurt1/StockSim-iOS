@@ -15,6 +15,12 @@ private final class DisplaySpy: StockDetailDisplayLogic {
 
     private(set) var selections: [StockDetail.Select.ViewModel] = []
     func displaySelection(viewModel: StockDetail.Select.ViewModel) { selections.append(viewModel) }
+
+    private(set) var initials: [StockDetail.Initial.ViewModel] = []
+    func displayInitial(viewModel: StockDetail.Initial.ViewModel) { initials.append(viewModel) }
+
+    private(set) var holdings: [StockDetail.Holding.ViewModel] = []
+    func displayHolding(viewModel: StockDetail.Holding.ViewModel) { holdings.append(viewModel) }
 }
 
 private let thyao = Instrument(symbol: Symbol("THYAO"), name: "Türk Hava Yolları")
@@ -58,6 +64,20 @@ struct StockDetailPresenterTests {
         #expect(viewModel.rangeTrend == .up)
         #expect(viewModel.high == "₺112,00")
         #expect(viewModel.low == "₺98,00")
+    }
+
+    /// 1D'de "Today" yüzdesi önceki kapanışa göre: başlıktaki günlük değişimle aynı (+%10),
+    /// gün içi grafiğin ilk mumu (108) farklı olsa bile.
+    @Test func dayRangeChangeMatchesDailyChange() {
+        let presenter = StockDetailPresenter()
+        let display = DisplaySpy()
+        presenter.viewController = display
+        let intraday = [candle("108", "111", "107", "109"), candle("109", "112", "108", "110")]
+
+        presenter.presentDetail(response: .init(instrument: thyao, quote: quote, candles: intraday, range: .day))
+
+        #expect(display.details.first?.rangeChange == "+%10,00 · Today")
+        #expect(display.details.first?.header.dayChange == "+%10,00")
     }
 
     @Test func chartPointsCarryOHLC() throws {
@@ -112,5 +132,47 @@ struct StockDetailPresenterTests {
         let viewModel = try #require(present(range: range))
         #expect(viewModel.rangeTitles == ["1D", "1W", "1M", "1Y"])
         #expect(viewModel.selectedRangeIndex == index)
+    }
+
+    // MARK: - Pozisyon kartı
+
+    private func holding(_ position: Position?, price: String = "110") -> StockDetail.Holding.ViewModel? {
+        let presenter = StockDetailPresenter()
+        let display = DisplaySpy()
+        presenter.viewController = display
+        let live = Quote(symbol: thyao.symbol, price: money(price), previousClose: money("100"), timestamp: date)
+        presenter.presentHolding(response: .init(position: position, quote: live))
+        return display.holdings.first
+    }
+
+    @Test func noPositionHidesCardAndSell() throws {
+        let viewModel = try #require(holding(nil))
+        #expect(viewModel.card == nil)
+        #expect(!viewModel.canSell)
+    }
+
+    /// 4 adet ort. 100, fiyat 110 → değer 440, K/Z +40 (+%10).
+    @Test func positionCardShowsValueAndProfit() throws {
+        var position = Position(symbol: thyao.symbol)
+        try position.buy(quantity: 4, price: money("100"))
+
+        let viewModel = try #require(holding(position))
+
+        #expect(viewModel.canSell)
+        #expect(viewModel.card?.summary == "4 shares · Avg ₺100,00")
+        #expect(viewModel.card?.value == "₺440,00")
+        #expect(viewModel.card?.profitLoss == "+₺40,00 (+%10,00)")
+        #expect(viewModel.card?.trend == .up)
+    }
+
+    @Test func initialHeaderUsesPassedQuote() {
+        let presenter = StockDetailPresenter()
+        let display = DisplaySpy()
+        presenter.viewController = display
+
+        presenter.presentInitial(response: .init(instrument: thyao, quote: quote))
+
+        #expect(display.initials.first?.title == "THYAO")
+        #expect(display.initials.first?.header?.price == "₺110,00")
     }
 }

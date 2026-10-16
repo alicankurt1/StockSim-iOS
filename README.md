@@ -27,7 +27,7 @@ See [PLAN.md](PLAN.md) for architecture and phases.
 | 4 | Sparkline | ✅ Done |
 | 5 | Stock detail + line chart | ✅ Done |
 | 6 | Candlestick + crosshair | ✅ Done |
-| 7 | Trading | ⏳ |
+| 7 | Trading | ✅ Done |
 | 8 | Portfolio, history, persistence | ⏳ |
 | 9 | Real market data | ⏳ |
 | 10 | What-if tracker | ⏳ |

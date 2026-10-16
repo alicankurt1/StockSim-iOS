@@ -2,6 +2,8 @@ import Domain
 
 @MainActor
 protocol StockDetailBusinessLogic {
+    /// Senkron: ekran ilk çizilmeden önce elde olan bilgiyi gösterir (kayma/boşluk olmasın).
+    func prepare()
     func load(request: StockDetail.Load.Request) async
     /// Akış bitene ya da çağıran Task iptal edilene kadar döner.
     func startLiveUpdates(request: StockDetail.Update.Request) async
@@ -12,6 +14,8 @@ protocol StockDetailBusinessLogic {
 @MainActor
 protocol StockDetailDataStore: AnyObject {
     var instrument: Instrument? { get set }
+    /// Önceki ekranın bildiği son fiyat (varsa).
+    var initialQuote: Quote? { get set }
 }
 
 @MainActor
@@ -21,14 +25,22 @@ final class StockDetailInteractor: StockDetailBusinessLogic, StockDetailDataStor
     private let worker: StockDetailWorking
 
     var instrument: Instrument?
+    var initialQuote: Quote?
 
     private var range: ChartRange = .day
     private var candles: [Candle] = []
     private var lastQuote: Quote?
+    private var position: Position?
 
     init(presenter: StockDetailPresentationLogic, worker: StockDetailWorking) {
         self.presenter = presenter
         self.worker = worker
+    }
+
+    func prepare() {
+        guard let instrument else { return }
+        lastQuote = initialQuote
+        presenter.presentInitial(response: StockDetail.Initial.Response(instrument: instrument, quote: initialQuote))
     }
 
     func load(request: StockDetail.Load.Request) async {
@@ -61,16 +73,37 @@ final class StockDetailInteractor: StockDetailBusinessLogic, StockDetailDataStor
         }
     }
 
+    /// İki akışı aynı anda dinler: piyasa (fiyat) ve portföy (pozisyon).
+    /// `async let` ikisini paralel başlatır; çağıran Task iptal edilince ikisi de biter.
     func startLiveUpdates(request: StockDetail.Update.Request) async {
-        guard let instrument else { return }
-        let updates = await worker.liveUpdates(for: instrument.symbol)
+        async let market: Void = listenToMarket()
+        async let holdings: Void = listenToPortfolio()
+        _ = await (market, holdings)
+    }
 
-        for await update in updates {
+    private func listenToMarket() async {
+        guard let instrument else { return }
+        for await update in await worker.liveUpdates(for: instrument.symbol) {
             guard case let .quote(quote) = update, quote.symbol == instrument.symbol else { continue }
             lastQuote = quote
             updateLastCandle(with: quote)
             presenter.presentQuoteUpdate(response: StockDetail.Update.Response(quote: quote, candles: candles, range: range))
+            // Fiyat değişince pozisyonun kâr/zararı da değişir.
+            if position != nil { presentHolding() }
         }
+    }
+
+    private func listenToPortfolio() async {
+        guard let instrument else { return }
+        for await portfolio in await worker.portfolioChanges() {
+            let current = portfolio.positions[instrument.symbol]
+            position = (current?.quantity ?? 0) > 0 ? current : nil
+            presentHolding()
+        }
+    }
+
+    private func presentHolding() {
+        presenter.presentHolding(response: StockDetail.Holding.Response(position: position, quote: lastQuote))
     }
 
     func selectPoint(request: StockDetail.Select.Request) {

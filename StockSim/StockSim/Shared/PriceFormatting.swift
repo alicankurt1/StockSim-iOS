@@ -51,6 +51,19 @@ enum PriceFormatting {
         return percent > 0 ? "+" + text : text
     }
 
+    /// İşaretli tutar: "+₺12,00", "-₺5,00", "₺0,00" (kâr/zarar için).
+    static func signedPrice(_ money: Money) -> String {
+        let text = price(Money(abs(money.amount)))
+        if money.amount > 0 { return "+" + text }
+        if money.amount < 0 { return "-" + text }
+        return text
+    }
+
+    /// "1 share", "4 shares".
+    static func shares(_ count: Int) -> String {
+        count == 1 ? "1 share" : "\(count) shares"
+    }
+
     /// Çizim için Double yeterli; hassas para hesabı burada yapılmıyor.
     static func chartValue(_ money: Money) -> Double {
         NSDecimalNumber(decimal: money.amount).doubleValue

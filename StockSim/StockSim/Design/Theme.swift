@@ -53,11 +53,11 @@ enum Theme {
     /// Navigation bar'ı temaya uydurur (büyük başlık dahil).
     static func style(_ navigationBar: UINavigationBar) {
         let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = Color.background
+        appearance.configureWithTransparentBackground()
         appearance.shadowColor = .clear
-        appearance.titleTextAttributes = [.foregroundColor: Color.textPrimary]
-        appearance.largeTitleTextAttributes = [.foregroundColor: Color.textPrimary]
+        // Başlık rengini bilerek vermiyoruz: sistemin `label` rengi koyu modda zaten beyaz.
+        // Dinamik bir rengi `largeTitleTextAttributes`'a verince iOS 26 büyük başlığı açık mod
+        // değerine (lacivert) çözüyor ve başlık lacivert zeminde kayboluyordu.
 
         navigationBar.standardAppearance = appearance
         navigationBar.scrollEdgeAppearance = appearance

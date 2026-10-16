@@ -176,9 +176,9 @@ public enum ChartRange: String, CaseIterable { case day, week, month, year }  //
 **Learns:** OCP, gestures, hit-testing.
 
 ### Phase 7 — Trading (~4 h) ✍️ interactor TDD
-- [ ] Trade sheet scene (buy / sell, market order)
-- [ ] `TradingWorker`, `actor PortfolioStore`
-- [ ] Errors: insufficient cash, insufficient quantity, halted symbol
+- [x] Trade sheet scene (buy / sell, market order)
+- [x] `TradingWorker`, `actor PortfolioStore`
+- [x] Errors: insufficient cash, insufficient quantity, halted symbol
 
 **Learns:** business rules in the interactor, mapping errors to view models.
 
