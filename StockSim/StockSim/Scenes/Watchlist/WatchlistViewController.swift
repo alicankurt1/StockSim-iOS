@@ -16,7 +16,7 @@ final class WatchlistViewController: UIViewController {
 
     private enum Section { case main }
     private var collectionView: UICollectionView!
-    private var dataSource: UICollectionViewDiffableDataSource<Section, Watchlist.Row>!
+    private var dataSource: UICollectionViewDiffableDataSource<Section, Watchlist.Item>!
 
     init(interactor: WatchlistBusinessLogic, router: WatchlistRoutingLogic) {
         self.interactor = interactor
@@ -32,6 +32,7 @@ final class WatchlistViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = Theme.Color.background
         setUpCollectionView()
         setUpDataSource()
 
@@ -42,24 +43,40 @@ final class WatchlistViewController: UIViewController {
     // MARK: - Kurulum
 
     private func setUpCollectionView() {
-        // Adım 3'te kendi compositional layout'umuzu yazacağız; şimdilik hazır liste düzeni.
-        let layout = UICollectionViewCompositionalLayout.list(using: .init(appearance: .plain))
-        collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: layout)
+        collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: Self.makeLayout())
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        collectionView.backgroundColor = Theme.Color.background
         view.addSubview(collectionView)
     }
 
+    /// Compositional layout: tek sütun kart listesi.
+    ///
+    /// Item (kart) → Group (bir satır) → Section (liste). Yükseklik `estimated`:
+    /// kart, içeriğine göre (Auto Layout) kendi yüksekliğini belirler.
+    private static func makeLayout() -> UICollectionViewLayout {
+        let size = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .estimated(68))
+        let item = NSCollectionLayoutItem(layoutSize: size)
+        let group = NSCollectionLayoutGroup.vertical(layoutSize: size, subitems: [item])
+
+        let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = Theme.Spacing.s + 2
+        section.contentInsets = NSDirectionalEdgeInsets(
+            top: Theme.Spacing.s, leading: Theme.Spacing.l, bottom: Theme.Spacing.l * 2, trailing: Theme.Spacing.l
+        )
+        return UICollectionViewCompositionalLayout(section: section)
+    }
+
     private func setUpDataSource() {
-        // Adım 3'te özel hücreye geçeceğiz; şimdilik sistemin liste hücresi.
-        let registration = UICollectionView.CellRegistration<UICollectionViewListCell, Watchlist.Row> { cell, _, row in
-            var content = UIListContentConfiguration.subtitleCell()
-            content.text = row.symbol
-            content.secondaryText = row.name
-            cell.contentConfiguration = content
-            cell.accessories = [.label(text: row.price)]
+        let registration = UICollectionView.CellRegistration<WatchlistCell, Watchlist.Item> { cell, _, item in
+            switch item {
+            case .placeholder:
+                cell.showPlaceholder()
+            case let .stock(row):
+                cell.configure(with: row)
+            }
         }
-        dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView) { collectionView, indexPath, row in
-            collectionView.dequeueConfiguredReusableCell(using: registration, for: indexPath, item: row)
+        dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView) { collectionView, indexPath, item in
+            collectionView.dequeueConfiguredReusableCell(using: registration, for: indexPath, item: item)
         }
     }
 }
@@ -69,10 +86,12 @@ final class WatchlistViewController: UIViewController {
 extension WatchlistViewController: WatchlistDisplayLogic {
 
     func displayWatchlist(viewModel: Watchlist.Load.ViewModel) {
-        var snapshot = NSDiffableDataSourceSnapshot<Section, Watchlist.Row>()
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Watchlist.Item>()
         snapshot.appendSections([.main])
-        snapshot.appendItems(viewModel.rows)
-        dataSource.apply(snapshot, animatingDifferences: false)
+        snapshot.appendItems(viewModel.items)
+        // Skeleton → veri geçişi yumuşak olsun (ilk açılışta animasyonsuz).
+        let hadItems = !dataSource.snapshot().itemIdentifiers.isEmpty
+        dataSource.apply(snapshot, animatingDifferences: hadItems)
     }
 
     func displayLoadError(message: String) {

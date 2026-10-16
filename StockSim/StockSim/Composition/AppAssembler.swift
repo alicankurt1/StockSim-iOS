@@ -20,6 +20,7 @@ final class AppAssembler {
 
         let navigationController = UINavigationController(rootViewController: makeWatchlist())
         navigationController.navigationBar.prefersLargeTitles = true
+        Theme.style(navigationController.navigationBar)
         return navigationController
     }
 
@@ -29,7 +30,7 @@ final class AppAssembler {
     /// Biz composition root'a taşıdık: VC bağımlılıklarını kendisi seçmez, dışarıdan alır.
     func makeWatchlist() -> UIViewController {
         let presenter = WatchlistPresenter()
-        let interactor = WatchlistInteractor(presenter: presenter, worker: WatchlistWorker(market: market))
+        let interactor = WatchlistInteractor(presenter: presenter, worker: makeWatchlistWorker())
         let router = WatchlistRouter(dataStore: interactor)
         let viewController = WatchlistViewController(interactor: interactor, router: router)
 
@@ -37,5 +38,12 @@ final class AppAssembler {
         presenter.viewController = viewController
         router.viewController = viewController
         return viewController
+    }
+
+    /// `-slowLoading` argümanıyla açılırsa Worker'ı geciktiren sarmalayıcıyla kurar (skeleton'ı görmek için).
+    private func makeWatchlistWorker() -> WatchlistWorking {
+        let worker = WatchlistWorker(market: market)
+        guard ProcessInfo.processInfo.arguments.contains("-slowLoading") else { return worker }
+        return DelayedWatchlistWorker(base: worker, delay: .seconds(2))
     }
 }

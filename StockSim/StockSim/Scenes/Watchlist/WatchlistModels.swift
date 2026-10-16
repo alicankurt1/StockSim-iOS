@@ -12,18 +12,36 @@ enum Watchlist {
         /// İş katmanının ham sonucu: Domain tipleri, format yok.
         struct Response {
             let instruments: [Instrument]
+            /// Fiyatı henüz bilinmeyen hisse burada olmayabilir.
+            let quotes: [Symbol: Quote]
         }
 
         /// Ekrana hazır sonuç: sadece string ve enum. View hiçbir şey hesaplamaz.
         struct ViewModel {
-            let rows: [Row]
+            let items: [Item]
+
+            /// Sadece veri satırları (testler ve okunabilirlik için).
+            var rows: [Row] {
+                items.compactMap { item in
+                    if case let .stock(row) = item { row } else { nil }
+                }
+            }
         }
+    }
+
+    /// Listedeki bir öğe: ya yükleniyor kutusu (skeleton) ya da gerçek satır.
+    /// Yükleniyor durumu da bir ViewModel; VC kendi kafasına göre spinner göstermez.
+    enum Item: Hashable {
+        case placeholder(Int)
+        case stock(Row)
     }
 
     /// Listede bir satır. `Hashable`: diffable data source kimlik ve değişiklik takibi için ister.
     struct Row: Hashable {
         let id: Symbol
         let symbol: String
+        /// Rozette görünen iki harf (ör. "TH").
+        let monogram: String
         let name: String
         let price: String
         let change: String

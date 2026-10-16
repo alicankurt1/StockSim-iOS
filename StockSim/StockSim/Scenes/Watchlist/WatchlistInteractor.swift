@@ -28,14 +28,17 @@ final class WatchlistInteractor: WatchlistBusinessLogic, WatchlistDataStore {
     }
 
     func loadWatchlist(request: Watchlist.Load.Request) async {
-        // TODO ✍️ (Adım 1):
+        // Veri gelene kadar skeleton.
+        presenter.presentLoading()
         do {
             let workerOutput = try await worker.fetchInstruments()
             self.instruments = workerOutput
-            presenter.presentWatchlist(response: Watchlist.Load.Response(instruments: self.instruments))
+            // Adım 2: ilk fiyatlar da yükleniyor; Presenter bunları formatlayacak.
+            let quotes = try await worker.fetchQuotes(for: workerOutput.map(\.symbol))
+            let quotesBySymbol = Dictionary(quotes.map { ($0.symbol, $0) }, uniquingKeysWith: { _, latest in latest })
+            presenter.presentWatchlist(response: Watchlist.Load.Response(instruments: self.instruments, quotes: quotesBySymbol))
         } catch {
             presenter.presentLoadError()
         }
-        // İpucu: do / catch.
     }
 }

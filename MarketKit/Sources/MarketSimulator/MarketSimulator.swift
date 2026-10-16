@@ -112,6 +112,10 @@ public actor MarketSimulator: MarketDataProviding, MarketControlling {
         configuration.instruments.map(\.instrument)
     }
 
+    public func quotes(for symbols: [Symbol]) -> [Quote] {
+        symbols.compactMap { quote(for: $0) }
+    }
+
     public func updates(for symbols: [Symbol]) -> AsyncStream<MarketUpdate> {
         let (stream, continuation) = AsyncStream.makeStream(of: MarketUpdate.self, bufferingPolicy: .bufferingNewest(256))
         let id = UUID()

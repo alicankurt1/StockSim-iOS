@@ -27,6 +27,8 @@ public enum MarketDataError: Error, Equatable, Sendable {
 /// Fiyat kaynağı (LSP: simülatör, gerçek veri ve test sahtesi birbirinin yerine geçebilir).
 public protocol MarketDataProviding: Sendable {
     func instruments() async throws -> [Instrument]
+    /// Verilen hisselerin anlık fiyatları (tek seferlik). Bilinmeyen hisseler atlanır.
+    func quotes(for symbols: [Symbol]) async throws -> [Quote]
     /// Verilen hisselerin canlı akışı. Abone olunca önce güncel fiyatlar gelir.
     func updates(for symbols: [Symbol]) async -> AsyncStream<MarketUpdate>
     func history(for symbol: Symbol, range: ChartRange) async throws -> [Candle]
