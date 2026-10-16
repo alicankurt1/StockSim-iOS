@@ -49,6 +49,9 @@ private final class PresenterSpy: StockDetailPresentationLogic {
     func presentDetail(response: StockDetail.Load.Response) { details.append(response) }
     func presentQuoteUpdate(response: StockDetail.Update.Response) { updates.append(response) }
     func presentLoadError() { errorCount += 1 }
+
+    private(set) var selections: [StockDetail.Select.Response] = []
+    func presentSelection(response: StockDetail.Select.Response) { selections.append(response) }
 }
 
 @MainActor
@@ -111,5 +114,40 @@ struct StockDetailInteractorTests {
         #expect(last?.high == Money(103))
         #expect(last?.low == Money(98))
         #expect(presenter.updates.first?.candles.first == candles[0])
+    }
+
+    // MARK: - Crosshair seçimi
+
+    @Test func selectingAPointPresentsThatCandle() async throws {
+        let candles = [candle(open: 98, high: 100, low: 97, close: 99), candle(open: 99, high: 104, low: 98, close: 103)]
+        let (interactor, presenter) = makeInteractor(worker: WorkerStub(candlesByRange: [.week: candles]))
+        await interactor.load(request: .init(range: .week))
+
+        interactor.selectPoint(request: .init(index: 1))
+
+        guard case let .point(selected, rangeStart, range) = try #require(presenter.selections.first) else {
+            Issue.record("Seçili nokta bekleniyordu")
+            return
+        }
+        #expect(selected == candles[1])
+        #expect(rangeStart == Money(98))
+        #expect(range == .week)
+    }
+
+    /// Parmak kalkınca (nil) ya da geçersiz indeks gelince başlık canlı fiyata döner.
+    @Test(arguments: [nil, 99] as [Int?])
+    func clearingOrInvalidIndexRestoresLiveQuote(index: Int?) async throws {
+        let candles = [candle(open: 98, high: 100, low: 97, close: 99)]
+        let (interactor, presenter) = makeInteractor(worker: WorkerStub(candlesByRange: [.day: candles]))
+        await interactor.load(request: .init(range: .day))
+
+        interactor.selectPoint(request: .init(index: index))
+
+        guard case let .cleared(name, quote) = try #require(presenter.selections.first) else {
+            Issue.record("Seçimin temizlenmesi bekleniyordu")
+            return
+        }
+        #expect(name == thyao.name)
+        #expect(quote == makeQuote(101))
     }
 }

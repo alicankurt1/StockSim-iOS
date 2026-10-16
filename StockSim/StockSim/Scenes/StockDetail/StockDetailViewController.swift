@@ -7,6 +7,7 @@ protocol StockDetailDisplayLogic: AnyObject {
     func displayDetail(viewModel: StockDetail.Load.ViewModel)
     func displayQuoteUpdate(viewModel: StockDetail.Update.ViewModel)
     func displayLoadError(message: String)
+    func displaySelection(viewModel: StockDetail.Select.ViewModel)
 }
 
 /// Hisse detayı: büyük fiyat, çizgi grafik, aralık seçici, en yüksek/en düşük.
@@ -31,13 +32,20 @@ final class StockDetailViewController: UIViewController {
     private let nameLabel = UILabel()
     private let priceLabel = UILabel()
     private let dayChangeLabel = PaddedLabel()
-    private let chartView = LineChartView()
+    private let chartView = ChartView()
+    /// Çizgi / mum seçimi: sadece görünüm tercihi, iş kuralı değil → VC'de kalabilir.
+    private let styleControl = UISegmentedControl(items: [
+        UIImage(systemName: "chart.xyaxis.line") as Any,
+        UIImage(systemName: "chart.bar.fill") as Any,
+    ])
     private let rangeControl = UISegmentedControl()
     private let rangeChangeLabel = UILabel()
     private let highValueLabel = UILabel()
     private let lowValueLabel = UILabel()
 
     private var hasLoaded = false
+    /// Parmak grafikteyken başlık seçili noktayı gösterir; canlı fiyat başlığı ezmesin.
+    private var isScrubbing = false
     private var liveUpdatesTask: Task<Void, Never>?
 
     init(interactor: StockDetailBusinessLogic, router: StockDetailRoutingLogic) {
@@ -56,6 +64,7 @@ final class StockDetailViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = Theme.Color.background
         setUpLayout()
+        setUpStyleControl()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -84,7 +93,25 @@ final class StockDetailViewController: UIViewController {
         Task { await interactor.load(request: .init(range: ChartRange.allCases[index])) }
     }
 
+    @objc private func styleChanged() {
+        // OCP: ChartView'a yeni bir çizer vermek yeterli; ChartView'ın içi değişmiyor.
+        chartView.renderer = styleControl.selectedSegmentIndex == 0 ? LineChartRenderer() : CandlestickChartRenderer()
+    }
+
+    private func chartSelectionChanged(_ index: Int?) {
+        isScrubbing = index != nil
+        interactor.selectPoint(request: .init(index: index))
+    }
+
     // MARK: - Yerleşim
+
+    private func setUpStyleControl() {
+        styleControl.selectedSegmentIndex = 0
+        styleControl.selectedSegmentTintColor = Theme.Color.accent
+        styleControl.backgroundColor = Theme.Color.surfaceElevated
+        styleControl.addTarget(self, action: #selector(styleChanged), for: .valueChanged)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: styleControl)
+    }
 
     private func setUpLayout() {
         nameLabel.font = .systemFont(ofSize: 15, weight: .medium)
@@ -133,6 +160,11 @@ final class StockDetailViewController: UIViewController {
 
     private func makeChartCard() -> UIView {
         chartView.gridColor = Theme.Color.border
+        chartView.upColor = Theme.Color.up
+        chartView.downColor = Theme.Color.down
+        chartView.crosshairColor = Theme.Color.textSecondary
+        chartView.backgroundColor = Theme.Color.surface
+        chartView.onSelectionChanged = { [weak self] index in self?.chartSelectionChanged(index) }
         chartView.translatesAutoresizingMaskIntoConstraints = false
         chartView.heightAnchor.constraint(equalToConstant: 220).isActive = true
 
@@ -202,8 +234,11 @@ final class StockDetailViewController: UIViewController {
         dayChangeLabel.backgroundColor = header.dayTrend.color.withAlphaComponent(0.15)
     }
 
-    private func chartData(_ chart: StockDetail.Chart) -> LineChartData {
-        LineChartData(values: chart.values, baseline: chart.baseline)
+    private func chartData(_ chart: StockDetail.Chart) -> ChartData {
+        ChartData(
+            points: chart.points.map { ChartPoint(open: $0.open, high: $0.high, low: $0.low, close: $0.close) },
+            baseline: chart.baseline
+        )
     }
 }
 
@@ -223,7 +258,7 @@ extension StockDetailViewController: StockDetailDisplayLogic {
         }
         rangeControl.selectedSegmentIndex = viewModel.selectedRangeIndex
 
-        chartView.setData(chartData(viewModel.chart), color: viewModel.chart.trend.color, animated: true)
+        chartView.setData(chartData(viewModel.chart), lineColor: viewModel.chart.trend.color, animated: true)
         rangeChangeLabel.text = viewModel.rangeChange
         rangeChangeLabel.textColor = viewModel.rangeTrend.color
         highValueLabel.text = viewModel.high
@@ -231,9 +266,13 @@ extension StockDetailViewController: StockDetailDisplayLogic {
     }
 
     func displayQuoteUpdate(viewModel: StockDetail.Update.ViewModel) {
-        apply(viewModel.header)
+        if !isScrubbing { apply(viewModel.header) }
         // Canlı güncellemede animasyon yok: sadece grafiğin ucu oynar.
-        chartView.setData(chartData(viewModel.chart), color: viewModel.chart.trend.color, animated: false)
+        chartView.setData(chartData(viewModel.chart), lineColor: viewModel.chart.trend.color, animated: false)
+    }
+
+    func displaySelection(viewModel: StockDetail.Select.ViewModel) {
+        apply(viewModel.header)
     }
 
     func displayLoadError(message: String) {

@@ -12,6 +12,9 @@ private final class DisplaySpy: StockDetailDisplayLogic {
     func displayDetail(viewModel: StockDetail.Load.ViewModel) { details.append(viewModel) }
     func displayQuoteUpdate(viewModel: StockDetail.Update.ViewModel) { updates.append(viewModel) }
     func displayLoadError(message: String) { errors.append(message) }
+
+    private(set) var selections: [StockDetail.Select.ViewModel] = []
+    func displaySelection(viewModel: StockDetail.Select.ViewModel) { selections.append(viewModel) }
 }
 
 private let thyao = Instrument(symbol: Symbol("THYAO"), name: "Türk Hava Yolları")
@@ -57,8 +60,45 @@ struct StockDetailPresenterTests {
         #expect(viewModel.low == "₺98,00")
     }
 
-    @Test func chartValuesAreCloses() throws {
-        #expect(try #require(present(range: .week)).chart.values == [102, 110])
+    @Test func chartPointsCarryOHLC() throws {
+        let points = try #require(present(range: .week)).chart.points
+        #expect(points.map(\.close) == [102, 110])
+        #expect(points.first == StockDetail.Chart.Point(open: 100, high: 104, low: 98, close: 102))
+    }
+
+    // MARK: - Crosshair seçimi
+
+    private func select(_ response: StockDetail.Select.Response) -> StockDetail.Header? {
+        let presenter = StockDetailPresenter()
+        let display = DisplaySpy()
+        presenter.viewController = display
+        presenter.presentSelection(response: response)
+        return display.selections.first?.header
+    }
+
+    /// Seçili nokta: fiyatı, aralık başından değişim (100 → 110 = +%10), başlıkta tarih.
+    @Test func selectedPointShowsItsPriceChangeAndDate() throws {
+        let header = try #require(select(.point(candles[1], rangeStart: money("100"), range: .month)))
+
+        #expect(header.price == "₺110,00")
+        #expect(header.dayChange == "+%10,00")
+        #expect(header.dayTrend == .up)
+        #expect(header.name == StockDetailPresenter.dateCaption(date, range: .month))
+    }
+
+    @Test func clearedSelectionRestoresLiveHeader() throws {
+        let header = try #require(select(.cleared(name: "Türk Hava Yolları", quote: quote)))
+
+        #expect(header.name == "Türk Hava Yolları")
+        #expect(header.price == "₺110,00")
+    }
+
+    /// 1_800_000_000 = 15 Ocak 2027 08:00 UTC = 11:00 İstanbul (Cuma).
+    @Test(arguments: [
+        (ChartRange.day, "11:00"), (.week, "Fri 11:00"), (.month, "15 Jan"), (.year, "15 Jan 2027"),
+    ])
+    func dateCaptionPerRange(range: ChartRange, expected: String) {
+        #expect(StockDetailPresenter.dateCaption(Date(timeIntervalSince1970: 1_800_000_000), range: range) == expected)
     }
 
     /// Önceki kapanış çizgisi sadece gün içi grafikte.

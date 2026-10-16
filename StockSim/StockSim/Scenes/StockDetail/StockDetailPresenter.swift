@@ -6,6 +6,7 @@ protocol StockDetailPresentationLogic {
     func presentDetail(response: StockDetail.Load.Response)
     func presentQuoteUpdate(response: StockDetail.Update.Response)
     func presentLoadError()
+    func presentSelection(response: StockDetail.Select.Response)
 }
 
 /// Detay ekranının formatlaması. UIKit bilmez.
@@ -46,6 +47,24 @@ final class StockDetailPresenter: StockDetailPresentationLogic {
         viewController?.displayLoadError(message: "Couldn't load this stock.")
     }
 
+    func presentSelection(response: StockDetail.Select.Response) {
+        let header: StockDetail.Header
+        switch response {
+        case let .point(candle, rangeStart, range):
+            // Seçili noktada: o anki fiyat, aralık başından o ana değişim, başlık yerine tarih.
+            let percent = rangeStart.amount > 0 ? (candle.close.amount - rangeStart.amount) / rangeStart.amount * 100 : 0
+            header = StockDetail.Header(
+                name: Self.dateCaption(candle.date, range: range),
+                price: PriceFormatting.price(candle.close),
+                dayChange: PriceFormatting.changePercent(percent),
+                dayTrend: PriceTrend(changePercent: percent)
+            )
+        case let .cleared(name, quote):
+            header = makeHeader(name: name, quote: quote)
+        }
+        viewController?.displaySelection(viewModel: StockDetail.Select.ViewModel(header: header))
+    }
+
     // MARK: - Parçalar
 
     private func makeHeader(name: String?, quote: Quote) -> StockDetail.Header {
@@ -59,7 +78,14 @@ final class StockDetailPresenter: StockDetailPresentationLogic {
 
     private func makeChart(candles: [Candle], quote: Quote, range: ChartRange) -> StockDetail.Chart {
         StockDetail.Chart(
-            values: candles.map { PriceFormatting.chartValue($0.close) },
+            points: candles.map {
+                StockDetail.Chart.Point(
+                    open: PriceFormatting.chartValue($0.open),
+                    high: PriceFormatting.chartValue($0.high),
+                    low: PriceFormatting.chartValue($0.low),
+                    close: PriceFormatting.chartValue($0.close)
+                )
+            },
             // Önceki kapanış sadece gün içi grafikte anlamlı.
             baseline: range == .day ? PriceFormatting.chartValue(quote.previousClose) : nil,
             trend: PriceTrend(changePercent: Self.rangeChangePercent(candles))
@@ -80,6 +106,23 @@ final class StockDetailPresenter: StockDetailPresentationLogic {
         case .year: "1Y"
         }
     }
+
+    /// Crosshair tarihi: kısa aralıkta saat, uzun aralıkta gün. Borsa saatiyle (İstanbul).
+    static func dateCaption(_ date: Date, range: ChartRange) -> String {
+        let formatter = dateFormatters[range]!
+        return formatter.string(from: date)
+    }
+
+    private static let dateFormatters: [ChartRange: DateFormatter] = {
+        let templates: [ChartRange: String] = [.day: "HH:mm", .week: "EEE HH:mm", .month: "d MMM", .year: "d MMM yyyy"]
+        return templates.mapValues { format in
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_GB")
+            formatter.timeZone = TimeZone(identifier: "Europe/Istanbul")
+            formatter.dateFormat = format
+            return formatter
+        }
+    }()
 
     static func caption(for range: ChartRange) -> String {
         switch range {

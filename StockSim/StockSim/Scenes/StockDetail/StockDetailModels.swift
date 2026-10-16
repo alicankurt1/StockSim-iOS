@@ -47,6 +47,24 @@ enum StockDetail {
         }
     }
 
+    /// Crosshair: parmağın altındaki nokta seçildi (ya da bırakıldı → `nil`).
+    enum Select {
+        struct Request {
+            let index: Int?
+        }
+
+        enum Response {
+            /// Seçili mum ve aralığın başlangıç fiyatı (değişim ona göre).
+            case point(Candle, rangeStart: Money, range: ChartRange)
+            /// Seçim bitti: başlık canlı fiyata döner.
+            case cleared(name: String, quote: Quote)
+        }
+
+        struct ViewModel: Equatable {
+            let header: Header
+        }
+    }
+
     struct Header: Equatable {
         let name: String
         let price: String
@@ -55,9 +73,18 @@ enum StockDetail {
     }
 
     struct Chart: Equatable {
-        let values: [Double]
+        /// Her nokta için açılış/en yüksek/en düşük/kapanış. Çizgi sadece kapanışı kullanır.
+        let points: [Point]
         /// Gün içi grafikte önceki kapanış çizgisi; diğer aralıklarda yok.
         let baseline: Double?
         let trend: PriceTrend
+
+        /// Ekrana hazır mum değerleri: sadece sayı (UIKit yok).
+        struct Point: Equatable {
+            let open: Double
+            let high: Double
+            let low: Double
+            let close: Double
+        }
     }
 }
