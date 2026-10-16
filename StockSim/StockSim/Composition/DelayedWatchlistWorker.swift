@@ -24,4 +24,8 @@ struct DelayedWatchlistWorker: WatchlistWorking {
     func liveUpdates(for symbols: [Symbol]) async -> AsyncStream<MarketUpdate> {
         await base.liveUpdates(for: symbols)
     }
+
+    func fetchIntradayCloses(for symbols: [Symbol]) async -> [Symbol: [Money]] {
+        await base.fetchIntradayCloses(for: symbols)
+    }
 }

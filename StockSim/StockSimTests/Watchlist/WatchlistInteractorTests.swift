@@ -11,6 +11,11 @@ private struct WorkerStub: WatchlistWorking {
     var quotes: [Quote] = []
     /// Canlı akışta sırayla yollanacak olaylar; sonra akış biter.
     var updates: [MarketUpdate] = []
+    var sparklines: [Symbol: [Money]] = [:]
+
+    func fetchIntradayCloses(for symbols: [Symbol]) async -> [Symbol: [Money]] {
+        sparklines.filter { symbols.contains($0.key) }
+    }
 
     func fetchInstruments() async throws -> [Instrument] {
         try result.get()
@@ -151,5 +156,35 @@ struct WatchlistInteractorTests {
         await interactor.startLiveUpdates(request: .init())
 
         #expect(presenter.quoteUpdates.isEmpty)
+    }
+
+    // MARK: - Sparkline
+
+    @Test func loadPassesSparklines() async {
+        let series = [Money(100), Money(101), Money(99)]
+        let presenter = PresenterSpy()
+        let worker = WorkerStub(result: .success(instruments), sparklines: [Symbol("THYAO"): series])
+        let interactor = WatchlistInteractor(presenter: presenter, worker: worker)
+
+        await interactor.loadWatchlist(request: .init())
+
+        #expect(presenter.presentedResponses.first?.sparklines == [Symbol("THYAO"): series])
+    }
+
+    /// Canlı fiyat yeni nokta eklemez; serinin son noktasını günceller.
+    @Test func liveQuoteReplacesLastSparklinePoint() async {
+        let quote = Quote(symbol: Symbol("THYAO"), price: Money(105), previousClose: Money(100), timestamp: .now)
+        let presenter = PresenterSpy()
+        let worker = WorkerStub(
+            result: .success(instruments),
+            updates: [.quote(quote)],
+            sparklines: [Symbol("THYAO"): [Money(100), Money(101), Money(99)]]
+        )
+        let interactor = WatchlistInteractor(presenter: presenter, worker: worker)
+        await interactor.loadWatchlist(request: .init())
+
+        await interactor.startLiveUpdates(request: .init())
+
+        #expect(presenter.quoteUpdates.first?.sparkline == [Money(100), Money(101), Money(105)])
     }
 }

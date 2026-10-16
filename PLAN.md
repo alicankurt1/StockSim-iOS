@@ -153,10 +153,10 @@ public enum ChartRange: String, CaseIterable { case day, week, month, year }  //
 **Learns:** VIP data flow, ISP, SRP, spies.
 
 ### Phase 4 — Sparkline (~3 h) ✍️
-- [ ] Normalization math (pure, tested on macOS)
-- [ ] `SparklineView` with `CAShapeLayer` + `UIBezierPath`
-- [ ] Cell reuse: update the path, never rebuild layers
-- [ ] Dark mode color update (`@available` for `registerForTraitChanges`)
+- [x] Normalization math (pure, tested on macOS)
+- [x] `SparklineView` with `CAShapeLayer` + `UIBezierPath`
+- [x] Cell reuse: update the path, never rebuild layers
+- [x] Dark mode color update (`@available` for `registerForTraitChanges`)
 
 **Learns:** Core Animation basics, drawing vs layout, `@available`.
 

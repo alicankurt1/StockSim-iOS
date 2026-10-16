@@ -73,3 +73,17 @@ Diffable öğeleri kimlikleriyle takip eder. Kimlik satırın tamamı olsaydı h
 
 **Canlı akış ve yaşam döngüsü**
 Interactor `for await` ile `AsyncStream`'i dinler. VC akışı `viewWillAppear`'da bir Task ile başlatır, `viewDidDisappear`'da iptal eder; iptal akışı bitirir ve abonelik temizlenir.
+
+## Phase 4 — Sparkline
+
+**`draw(_:)` yerine neden `CAShapeLayer`?**
+`draw(_:)` her değişimde tüm view'ı CPU'da yeniden boyar. `CAShapeLayer`'a sadece yeni bir `path` verilir, boyamayı Core Animation (GPU) yapar. Katmanlar bir kez kurulur; hücre reuse'ta ve saniyede bir güncellemede sadece yol değişir. Dolgu: `CAGradientLayer` + çizginin altındaki alanı gösteren bir maske katmanı.
+
+**Çizim matematiği neden ayrı bir dosyada?**
+`SparklineGeometry` UIKit bilmez (sadece CoreGraphics), bu yüzden macOS'ta simülatörsüz test edilir: en yüksek değer üstte mi, noktalar eşit aralıklı mı, düz seri ortada mı. View sadece bu noktaları birleştirir. Zor kısım test edilir, view ince kalır.
+
+**`#available` / `@available` ne işe yarar?**
+Hedef iOS 16 ama iOS 17'de yeni API var (`registerForTraitChanges`). `if #available(iOS 17, *)` çalışma anında sürümü kontrol eder; yeni API sadece destekleyen cihazda çağrılır, iOS 16'da eski yöntem (`traitCollectionDidChange`) çalışır. `@available` ise bir tipi/fonksiyonu sürüme bağlar.
+
+**CALayer renkleri neden elle güncellenir?**
+Katmanlar `CGColor` kullanır; `CGColor` dinamik değildir, açık/koyu mod değişince kendiliğinden güncellenmez. `UIColor` saklanır, mod değişince `resolvedColor(with:)` ile yeniden çözülür.

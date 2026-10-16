@@ -23,6 +23,8 @@ final class WatchlistInteractor: WatchlistBusinessLogic, WatchlistDataStore {
     private let worker: WatchlistWorking
 
     private(set) var instruments: [Instrument] = []
+    /// Sparkline serileri; canlı fiyat geldikçe son değer güncellenir.
+    private var sparklines: [Symbol: [Money]] = [:]
 
     init(presenter: WatchlistPresentationLogic, worker: WatchlistWorking) {
         self.presenter = presenter
@@ -38,7 +40,10 @@ final class WatchlistInteractor: WatchlistBusinessLogic, WatchlistDataStore {
             // Adım 2: ilk fiyatlar da yükleniyor; Presenter bunları formatlayacak.
             let quotes = try await worker.fetchQuotes(for: workerOutput.map(\.symbol))
             let quotesBySymbol = Dictionary(quotes.map { ($0.symbol, $0) }, uniquingKeysWith: { _, latest in latest })
-            presenter.presentWatchlist(response: Watchlist.Load.Response(instruments: self.instruments, quotes: quotesBySymbol))
+            sparklines = await worker.fetchIntradayCloses(for: workerOutput.map(\.symbol))
+            presenter.presentWatchlist(response: Watchlist.Load.Response(
+                instruments: self.instruments, quotes: quotesBySymbol, sparklines: sparklines
+            ))
         } catch {
             presenter.presentLoadError()
         }
@@ -54,11 +59,22 @@ final class WatchlistInteractor: WatchlistBusinessLogic, WatchlistDataStore {
             switch update {
             case let .quote(quote):
                 guard let instrument = instrumentsBySymbol[quote.symbol] else { continue }
-                presenter.presentQuoteUpdate(response: Watchlist.Update.Response(instrument: instrument, quote: quote))
+                updateSparkline(with: quote)
+                presenter.presentQuoteUpdate(response: Watchlist.Update.Response(
+                    instrument: instrument, quote: quote, sparkline: sparklines[quote.symbol] ?? []
+                ))
             case .halted, .resumed, .feedInterrupted, .feedRestored:
                 // Phase 11'de: işlem durdu rozeti ve "veri eski" uyarısı.
                 continue
             }
         }
+    }
+
+    /// Serinin son noktası "şu anki" fiyattır: yeni nokta eklemek yerine onu güncelliyoruz.
+    /// Böylece grafiğin ölçeği (5 dakikalık mumlar) bozulmaz, sadece ucu canlı oynar.
+    private func updateSparkline(with quote: Quote) {
+        guard var series = sparklines[quote.symbol], !series.isEmpty else { return }
+        series[series.count - 1] = quote.price
+        sparklines[quote.symbol] = series
     }
 }

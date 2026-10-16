@@ -124,4 +124,14 @@ struct WatchlistPresenterTests {
         #expect(display.updatedRows.first?.trend == .up)
         #expect(display.viewModels.isEmpty)
     }
+
+    @Test func rowCarriesSparklineAsNumbers() {
+        let row = WatchlistPresenter().makeRow(
+            instrument: thyao,
+            quote: quote("100", previousClose: "100"),
+            sparkline: [Money(Decimal(string: "99.5")!), Money(100)]
+        )
+
+        #expect(row.sparkline == [99.5, 100])
+    }
 }
