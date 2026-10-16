@@ -115,3 +115,28 @@ Grafik sadece "şu indeks seçildi" der (UI olayı). VC bunu Interactor'a iletir
 
 **Mum grafikte neden yüzlerce katman değil 4 katman?**
 Her mum için ayrı katman = yüzlerce CALayer, her biri ayrı bellek ve çizim maliyeti. Yükselen/düşen gövdeler ve fitiller için birer `CAShapeLayer` (toplam 4); her biri tüm mumları tek path'te çizer.
+
+## Phase 7 — Al/Sat
+
+**Paylaşılan portföy neden actor? (`PortfolioStore`)**
+Al/sat, detay ve (ileride) portföy ekranı aynı hesabı okur/yazar. Actor erişimleri sıraya koyar: 100 alım emri aynı anda gelse ve nakit 50'sine yetse, tam 50'si başarılı olur, nakit asla eksiye düşmez (testte kanıtlı). Kurallar `Portfolio` struct'ında; actor sadece "tek doğru kopya"yı tutar. Değişiklikler `changes()` akışıyla yayınlanır; detay ekranı bu sayede alımdan hemen sonra "Sell" düğmesini ve pozisyon kartını gösterir.
+
+**Form doğrularken kuralı neden tekrar yazmadık?**
+Interactor emri portföyün bir KOPYASINDA deneme olarak çalıştırır (`Portfolio` struct = değer tipi, gerçek hesap değişmez). Domain ne derse o: "nakit yetiyor mu" kuralı tek yerde. Interactor'a ayrıca yazsaydık iki kural zamanla ayrışabilirdi.
+
+**Hata → mesaj kimin işi?**
+Interactor "ne oldu"yu bilir (`TradingError.insufficientCash`). Presenter "nasıl söylenir"i bilir ("Not enough cash. Available: ₺50,00."). Mesajlar tablo testiyle doğrulanır; dil/ton değişince sadece Presenter değişir.
+
+**İki akışı aynı anda dinlemek: `async let`**
+Detay ekranı hem fiyatı hem portföyü dinler. `async let` ikisini paralel başlatır; ekran kapanınca (Task iptali) ikisi birden biter.
+
+## Hata ayıklama dersleri (iOS 26)
+
+**Büyük başlık neden görünmüyordu?**
+`UINavigationBarAppearance.configureWithOpaqueBackground()`: iOS 26'nın yeni (liquid glass) navigation bar'ında opak arka plan büyük başlığın üstünü örtüyordu. Teşhis yöntemi: tema ayarını kapat → başlık geliyor mu? Sonra parçaları tek tek dene (önce renk, sonra arka plan). Çözüm: `configureWithTransparentBackground()`; kaydırınca iOS 26'nın kendi bulanık kenar efekti devreye giriyor.
+
+**Detaya geçerken içerik neden zıplıyordu?**
+Büyük başlıklı listeden küçük başlıklı ekrana geçerken bar yüksekliği değişir; scroll view'ın otomatik iç boşluk ayarı (contentInsetAdjustment) geçiş bitince gelir → içerik zıplar. Çözüm: `contentInsetAdjustmentBehavior = .never` + scroll view'ı safe area'ya sabitlemek. Ayrıca ekranın ilk karesi boş olmasın diye Router son bilinen fiyatı aktarır, `viewDidLoad`'da senkron gösterilir.
+
+**Aynı ekranda iki farklı "bugün" yüzdesi**
+Başlık önceki kapanışa göre, grafik günün ilk mumuna göre hesaplıyordu. Tek tanım: 1D değişimi = önceki kapanışa göre değişim; bir testle sabitlendi.

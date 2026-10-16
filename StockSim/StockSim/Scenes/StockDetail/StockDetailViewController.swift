@@ -4,6 +4,8 @@ import Charts
 
 @MainActor
 protocol StockDetailDisplayLogic: AnyObject {
+    func displayInitial(viewModel: StockDetail.Initial.ViewModel)
+    func displayHolding(viewModel: StockDetail.Holding.ViewModel)
     func displayDetail(viewModel: StockDetail.Load.ViewModel)
     func displayQuoteUpdate(viewModel: StockDetail.Update.ViewModel)
     func displayLoadError(message: String)
@@ -42,8 +44,16 @@ final class StockDetailViewController: UIViewController {
     private let rangeChangeLabel = UILabel()
     private let highValueLabel = UILabel()
     private let lowValueLabel = UILabel()
+    private let buyButton = UIButton(type: .system)
+    private let sellButton = UIButton(type: .system)
+
+    private let positionSummaryLabel = UILabel()
+    private let positionValueLabel = UILabel()
+    private let positionProfitLabel = UILabel()
 
     private var hasLoaded = false
+    /// Pozisyon kartının dış kabı (gizle/göster).
+    private var positionCardContainer: UIView?
     /// Parmak grafikteyken başlık seçili noktayı gösterir; canlı fiyat başlığı ezmesin.
     private var isScrubbing = false
     private var liveUpdatesTask: Task<Void, Never>?
@@ -65,6 +75,8 @@ final class StockDetailViewController: UIViewController {
         view.backgroundColor = Theme.Color.background
         setUpLayout()
         setUpStyleControl()
+        // Ekran kayarak gelirken başlık dolu olsun: async yükleme beklenmeden, senkron.
+        interactor.prepare()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -134,21 +146,25 @@ final class StockDetailViewController: UIViewController {
         header.axis = .vertical
         header.spacing = Theme.Spacing.xs
 
-        let content = UIStackView(arrangedSubviews: [header, makeChartCard(), makeStatsRow()])
+        let content = UIStackView(arrangedSubviews: [header, makeChartCard(), makePositionCard(), makeStatsRow(), makeTradeButtons()])
         content.axis = .vertical
         content.spacing = Theme.Spacing.l
         content.translatesAutoresizingMaskIntoConstraints = false
 
         scrollView.alwaysBounceVertical = true
+        // Üst boşluğu UIKit'in otomatik ayarına bırakmıyoruz: büyük başlıklı listeden gelirken
+        // bar yüksekliği değişir ve otomatik ayar geç gelir → içerik zıplar. Safe area'ya sabitliyoruz.
+        scrollView.contentInsetAdjustmentBehavior = .never
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(scrollView)
         scrollView.addSubview(content)
 
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            // Otomatik ayar kapalı olduğu için alt kenarı da (ana ekran çubuğu) safe area'ya sabitliyoruz.
+            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
 
             // İçerik, kaydırma alanının içinde; genişliği ekrana sabit (yatay kaydırma yok).
             content.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: Theme.Spacing.l),
@@ -180,6 +196,58 @@ final class StockDetailViewController: UIViewController {
         stack.axis = .vertical
         stack.spacing = Theme.Spacing.m
         return card(containing: stack)
+    }
+
+    private func makeTradeButtons() -> UIView {
+        configureTradeButton(buyButton, title: "Buy", color: Theme.Color.up, side: .buy)
+        configureTradeButton(sellButton, title: "Sell", color: Theme.Color.down, side: .sell)
+        // Pozisyon yokken Sell gizli; Buy tüm genişliği kaplar (fillEqually + gizli view).
+        sellButton.isHidden = true
+        let row = UIStackView(arrangedSubviews: [sellButton, buyButton])
+        row.distribution = .fillEqually
+        row.spacing = Theme.Spacing.m
+        return row
+    }
+
+    private func makePositionCard() -> UIView {
+        let title = UILabel()
+        title.text = "Your position"
+        title.font = .systemFont(ofSize: 12, weight: .medium)
+        title.textColor = Theme.Color.textSecondary
+
+        positionSummaryLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        positionSummaryLabel.textColor = Theme.Color.textPrimary
+        positionValueLabel.font = Theme.Font.price
+        positionValueLabel.textColor = Theme.Color.textPrimary
+        positionValueLabel.textAlignment = .right
+        positionProfitLabel.font = .monospacedDigitSystemFont(ofSize: 13, weight: .semibold)
+        positionProfitLabel.textAlignment = .right
+
+        let left = UIStackView(arrangedSubviews: [title, positionSummaryLabel])
+        left.axis = .vertical
+        left.spacing = Theme.Spacing.xs
+        let right = UIStackView(arrangedSubviews: [positionValueLabel, positionProfitLabel])
+        right.axis = .vertical
+        right.alignment = .trailing
+        right.spacing = Theme.Spacing.xs
+        let row = UIStackView(arrangedSubviews: [left, right])
+        row.alignment = .center
+
+        let card = card(containing: row)
+        card.isHidden = true
+        positionCardContainer = card
+        return card
+    }
+
+    private func configureTradeButton(_ button: UIButton, title: String, color: UIColor, side: OrderSide) {
+        var configuration = UIButton.Configuration.filled()
+        configuration.title = title
+        configuration.baseBackgroundColor = color
+        configuration.cornerStyle = .large
+        configuration.buttonSize = .large
+        button.configuration = configuration
+        // VC sadece "al'a basıldı" der; sayfayı açmak Router'ın işi.
+        button.addAction(UIAction { [weak self] _ in self?.router.routeToTradeTicket(side: side) }, for: .touchUpInside)
     }
 
     private func makeStatsRow() -> UIView {
@@ -246,6 +314,24 @@ final class StockDetailViewController: UIViewController {
 
 extension StockDetailViewController: StockDetailDisplayLogic {
 
+    func displayInitial(viewModel: StockDetail.Initial.ViewModel) {
+        title = viewModel.title
+        if let header = viewModel.header { apply(header) }
+    }
+
+    func displayHolding(viewModel: StockDetail.Holding.ViewModel) {
+        sellButton.isHidden = !viewModel.canSell
+        guard let card = viewModel.card else {
+            positionCardContainer?.isHidden = true
+            return
+        }
+        positionCardContainer?.isHidden = false
+        positionSummaryLabel.text = card.summary
+        positionValueLabel.text = card.value
+        positionProfitLabel.text = card.profitLoss
+        positionProfitLabel.textColor = card.trend.color
+    }
+
     func displayDetail(viewModel: StockDetail.Load.ViewModel) {
         title = viewModel.title
         apply(viewModel.header)
@@ -267,6 +353,8 @@ extension StockDetailViewController: StockDetailDisplayLogic {
 
     func displayQuoteUpdate(viewModel: StockDetail.Update.ViewModel) {
         if !isScrubbing { apply(viewModel.header) }
+        rangeChangeLabel.text = viewModel.rangeChange
+        rangeChangeLabel.textColor = viewModel.rangeTrend.color
         // Canlı güncellemede animasyon yok: sadece grafiğin ucu oynar.
         chartView.setData(chartData(viewModel.chart), lineColor: viewModel.chart.trend.color, animated: false)
     }

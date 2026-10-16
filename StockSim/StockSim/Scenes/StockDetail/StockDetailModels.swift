@@ -2,6 +2,44 @@ import Domain
 
 enum StockDetail {
 
+    /// Ekran ilk açılırken (henüz veri yüklenmeden): Router'ın aktardığı bilgiyle başlık dolu gelsin.
+    enum Initial {
+        struct Response {
+            let instrument: Instrument
+            let quote: Quote?
+        }
+
+        struct ViewModel: Equatable {
+            let title: String
+            let header: Header?
+        }
+    }
+
+    /// Kullanıcının bu hissedeki pozisyonu: portföy ya da fiyat değişince yenilenir.
+    enum Holding {
+        struct Response {
+            let position: Position?
+            let quote: Quote?
+        }
+
+        struct ViewModel: Equatable {
+            /// `nil`: hissede pozisyon yok → kart gizli.
+            let card: Card?
+            /// Pozisyon yoksa sadece "Buy" görünür.
+            let canSell: Bool
+
+            struct Card: Equatable {
+                /// "4 shares · Avg ₺287,50"
+                let summary: String
+                /// Güncel değer, ör. "₺1.150,00"
+                let value: String
+                /// "+₺12,00 (+%1,04)"
+                let profitLoss: String
+                let trend: PriceTrend
+            }
+        }
+    }
+
     /// Ekran açıldı ya da aralık (1D/1W/1M/1Y) değişti.
     enum Load {
         struct Request {
@@ -44,6 +82,9 @@ enum StockDetail {
         struct ViewModel: Equatable {
             let header: Header
             let chart: Chart
+            /// Aralık değişimi de canlı: grafiğin ucu oynadıkça değişir.
+            let rangeChange: String
+            let rangeTrend: PriceTrend
         }
     }
 

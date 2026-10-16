@@ -38,5 +38,6 @@ final class WatchlistRouter: WatchlistRoutingLogic {
 
     private func passData(_ instrument: Instrument, to destination: StockDetailDataStore) {
         destination.instrument = instrument
+        destination.initialQuote = dataStore.quotes[instrument.symbol]
     }
 }

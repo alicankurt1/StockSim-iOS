@@ -10,9 +10,12 @@ final class AppAssembler {
 
     /// Uygulama boyunca tek bir piyasa. Phase 9'da burada gerçek veriyle değiştirilebilecek.
     private let market: MarketSimulator
+    /// Tek sanal hesap: tüm ekranlar aynı actor'ü paylaşır.
+    private let portfolioStore: PortfolioStoring
 
-    init(market: MarketSimulator = MarketSimulator()) {
+    init(market: MarketSimulator = MarketSimulator(), portfolioStore: PortfolioStoring = PortfolioStore()) {
         self.market = market
+        self.portfolioStore = portfolioStore
     }
 
     func makeRootViewController() -> UIViewController {
@@ -43,9 +46,21 @@ final class AppAssembler {
     /// Detay sahnesini kurar. Router'a veri yazabilsin diye DataStore'u (Interactor) da döner.
     func makeStockDetail() -> (viewController: UIViewController, dataStore: StockDetailDataStore) {
         let presenter = StockDetailPresenter()
-        let interactor = StockDetailInteractor(presenter: presenter, worker: StockDetailWorker(market: market))
-        let router = StockDetailRouter(dataStore: interactor)
+        let interactor = StockDetailInteractor(presenter: presenter, worker: StockDetailWorker(market: market, portfolio: portfolioStore))
+        let router = StockDetailRouter(dataStore: interactor, makeTradeTicket: { [unowned self] in self.makeTradeTicket() })
         let viewController = StockDetailViewController(interactor: interactor, router: router)
+
+        presenter.viewController = viewController
+        router.viewController = viewController
+        return (viewController, interactor)
+    }
+
+    func makeTradeTicket() -> (viewController: UIViewController, dataStore: TradeTicketDataStore) {
+        let presenter = TradeTicketPresenter()
+        let worker = TradeTicketWorker(market: market, portfolio: portfolioStore)
+        let interactor = TradeTicketInteractor(presenter: presenter, worker: worker)
+        let router = TradeTicketRouter()
+        let viewController = TradeTicketViewController(interactor: interactor, router: router)
 
         presenter.viewController = viewController
         router.viewController = viewController

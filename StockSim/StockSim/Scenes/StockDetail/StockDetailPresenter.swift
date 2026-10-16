@@ -3,6 +3,8 @@ import Domain
 
 @MainActor
 protocol StockDetailPresentationLogic {
+    func presentInitial(response: StockDetail.Initial.Response)
+    func presentHolding(response: StockDetail.Holding.Response)
     func presentDetail(response: StockDetail.Load.Response)
     func presentQuoteUpdate(response: StockDetail.Update.Response)
     func presentLoadError()
@@ -18,9 +20,38 @@ final class StockDetailPresenter: StockDetailPresentationLogic {
     /// Aralık seçicinin sırası; VC seçilen indeksi bu sıraya göre Interactor'a geri yollar.
     static let ranges = ChartRange.allCases
 
+    func presentInitial(response: StockDetail.Initial.Response) {
+        viewController?.displayInitial(viewModel: StockDetail.Initial.ViewModel(
+            title: response.instrument.symbol.rawValue,
+            header: response.quote.map { makeHeader(name: response.instrument.name, quote: $0) }
+                ?? StockDetail.Header(name: response.instrument.name, price: "—", dayChange: "", dayTrend: .flat)
+        ))
+    }
+
+    func presentHolding(response: StockDetail.Holding.Response) {
+        guard let position = response.position, position.quantity > 0 else {
+            viewController?.displayHolding(viewModel: .init(card: nil, canSell: false))
+            return
+        }
+        // Fiyat henüz yoksa maliyetten değerle (K/Z sıfır görünür).
+        let price = response.quote?.price ?? position.averageCost
+        let profitLoss = position.unrealizedPnL(at: price)
+        let percent = position.costBasis.amount > 0 ? profitLoss.amount / position.costBasis.amount * 100 : 0
+
+        viewController?.displayHolding(viewModel: .init(
+            card: .init(
+                summary: "\(PriceFormatting.shares(position.quantity)) · Avg \(PriceFormatting.price(position.averageCost))",
+                value: PriceFormatting.price(position.marketValue(at: price)),
+                profitLoss: "\(PriceFormatting.signedPrice(profitLoss)) (\(PriceFormatting.changePercent(percent)))",
+                trend: PriceTrend(changePercent: percent)
+            ),
+            canSell: true
+        ))
+    }
+
     func presentDetail(response: StockDetail.Load.Response) {
         let candles = response.candles
-        let rangePercent = Self.rangeChangePercent(candles)
+        let rangePercent = Self.rangeChangePercent(candles, quote: response.quote, range: response.range)
 
         let viewModel = StockDetail.Load.ViewModel(
             title: response.instrument.symbol.rawValue,
@@ -37,9 +68,12 @@ final class StockDetailPresenter: StockDetailPresentationLogic {
     }
 
     func presentQuoteUpdate(response: StockDetail.Update.Response) {
+        let rangePercent = Self.rangeChangePercent(response.candles, quote: response.quote, range: response.range)
         viewController?.displayQuoteUpdate(viewModel: StockDetail.Update.ViewModel(
             header: makeHeader(name: nil, quote: response.quote),
-            chart: makeChart(candles: response.candles, quote: response.quote, range: response.range)
+            chart: makeChart(candles: response.candles, quote: response.quote, range: response.range),
+            rangeChange: "\(PriceFormatting.changePercent(rangePercent)) · \(Self.caption(for: response.range))",
+            rangeTrend: PriceTrend(changePercent: rangePercent)
         ))
     }
 
@@ -88,12 +122,17 @@ final class StockDetailPresenter: StockDetailPresentationLogic {
             },
             // Önceki kapanış sadece gün içi grafikte anlamlı.
             baseline: range == .day ? PriceFormatting.chartValue(quote.previousClose) : nil,
-            trend: PriceTrend(changePercent: Self.rangeChangePercent(candles))
+            trend: PriceTrend(changePercent: Self.rangeChangePercent(candles, quote: quote, range: range))
         )
     }
 
-    /// Aralığın ilk açılışından son kapanışa yüzde değişim.
-    static func rangeChangePercent(_ candles: [Candle]) -> Decimal {
+    /// Aralık boyunca değişim.
+    /// - Gün içi (1D): önceki kapanışa göre, yani başlıktaki günlük değişimle AYNI sayı.
+    ///   (Gün içi grafiğin ilk mumu önceki kapanış değildir; ona göre hesaplamak iki farklı
+    ///   "bugün" yüzdesi gösteriyordu.)
+    /// - Diğer aralıklar: aralığın ilk açılışından son (canlı) kapanışa.
+    static func rangeChangePercent(_ candles: [Candle], quote: Quote, range: ChartRange) -> Decimal {
+        if range == .day { return quote.changePercent }
         guard let first = candles.first?.open.amount, let last = candles.last?.close.amount, first > 0 else { return 0 }
         return (last - first) / first * 100
     }

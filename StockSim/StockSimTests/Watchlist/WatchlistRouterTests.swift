@@ -7,11 +7,13 @@ import Domain
 @MainActor
 private final class DetailDataStoreSpy: StockDetailDataStore {
     var instrument: Instrument?
+    var initialQuote: Quote?
 }
 
 @MainActor
 private struct DataStoreStub: WatchlistDataStore {
     var instruments: [Instrument]
+    var quotes: [Symbol: Quote] = [:]
 }
 
 private let thyao = Instrument(symbol: Symbol("THYAO"), name: "Türk Hava Yolları")
@@ -20,9 +22,9 @@ private let thyao = Instrument(symbol: Symbol("THYAO"), name: "Türk Hava Yollar
 @MainActor
 struct WatchlistRouterTests {
 
-    private func makeRouter(instruments: [Instrument]) -> (WatchlistRouter, UINavigationController, DetailDataStoreSpy) {
+    private func makeRouter(instruments: [Instrument], quotes: [Symbol: Quote] = [:]) -> (WatchlistRouter, UINavigationController, DetailDataStoreSpy) {
         let destinationStore = DetailDataStoreSpy()
-        let router = WatchlistRouter(dataStore: DataStoreStub(instruments: instruments)) {
+        let router = WatchlistRouter(dataStore: DataStoreStub(instruments: instruments, quotes: quotes)) {
             (UIViewController(), destinationStore)
         }
         let source = UIViewController()
@@ -47,5 +49,15 @@ struct WatchlistRouterTests {
 
         #expect(destinationStore.instrument == nil)
         #expect(navigationController.viewControllers.count == 1)
+    }
+
+    /// Detay boş açılmasın diye bilinen son fiyat da aktarılır.
+    @Test func routePassesLastKnownQuote() {
+        let quote = Quote(symbol: thyao.symbol, price: Money(290), previousClose: Money(287), timestamp: .now)
+        let (router, _, destinationStore) = makeRouter(instruments: [thyao], quotes: [thyao.symbol: quote])
+
+        router.routeToStockDetail(symbol: thyao.symbol)
+
+        #expect(destinationStore.initialQuote == quote)
     }
 }

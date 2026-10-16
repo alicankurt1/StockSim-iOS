@@ -21,6 +21,15 @@ private struct WorkerStub: StockDetailWorking {
     var candlesByRange: [ChartRange: [Candle]] = [:]
     var fails = false
     var updates: [MarketUpdate] = []
+    var portfolios: [Portfolio] = []
+
+    func portfolioChanges() async -> AsyncStream<Portfolio> {
+        let portfolios = portfolios
+        return AsyncStream { continuation in
+            for portfolio in portfolios { continuation.yield(portfolio) }
+            continuation.finish()
+        }
+    }
 
     func fetchQuote(for symbol: Symbol) async throws -> Quote? {
         if fails { throw SomeError() }
@@ -52,6 +61,12 @@ private final class PresenterSpy: StockDetailPresentationLogic {
 
     private(set) var selections: [StockDetail.Select.Response] = []
     func presentSelection(response: StockDetail.Select.Response) { selections.append(response) }
+
+    private(set) var initials: [StockDetail.Initial.Response] = []
+    func presentInitial(response: StockDetail.Initial.Response) { initials.append(response) }
+
+    private(set) var holdings: [StockDetail.Holding.Response] = []
+    func presentHolding(response: StockDetail.Holding.Response) { holdings.append(response) }
 }
 
 @MainActor
@@ -149,5 +164,32 @@ struct StockDetailInteractorTests {
         }
         #expect(name == thyao.name)
         #expect(quote == makeQuote(101))
+    }
+
+    // MARK: - İlk kare ve pozisyon
+
+    /// Router'ın aktardığı son fiyat, yükleme beklenmeden hemen gösterilir.
+    @Test func prepareShowsInitialQuoteImmediately() {
+        let (interactor, presenter) = makeInteractor(worker: WorkerStub())
+        interactor.initialQuote = makeQuote(99)
+
+        interactor.prepare()
+
+        #expect(presenter.initials.first?.instrument == thyao)
+        #expect(presenter.initials.first?.quote == makeQuote(99))
+    }
+
+    /// Portföy akışı: önce pozisyon yok, alımdan sonra var.
+    @Test func portfolioChangesPresentHolding() async throws {
+        var bought = Portfolio(cash: Money(1_000))
+        try bought.execute(Order(symbol: thyao.symbol, side: .buy, quantity: 2), at: makeQuote(100))
+        let worker = WorkerStub(portfolios: [Portfolio(cash: Money(1_000)), bought])
+        let (interactor, presenter) = makeInteractor(worker: worker)
+
+        await interactor.startLiveUpdates(request: .init())
+
+        #expect(presenter.holdings.count == 2)
+        #expect(presenter.holdings.first?.position == nil)
+        #expect(presenter.holdings.last?.position?.quantity == 2)
     }
 }
