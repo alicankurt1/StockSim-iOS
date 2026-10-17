@@ -43,6 +43,8 @@ final class AppAssembler {
     private let portfolioStore: PortfolioStoring
     /// Kişisel izleme listesi: kaynak değişse de aynı liste.
     private let watchlistStore: WatchlistStoring
+    /// Takip edilen "ya alsaydım" senaryoları.
+    private let whatIfStore: WhatIfStoring
     /// Kaynak değişince kök ekranı yeniden kurmak için.
     weak var window: UIWindow?
 
@@ -51,12 +53,14 @@ final class AppAssembler {
     init(
         dataSource: MarketDataSource? = nil,
         portfolioStore: PortfolioStoring = AppAssembler.makePortfolioStore(),
-        watchlistStore: WatchlistStoring = AppAssembler.makeWatchlistStore()
+        watchlistStore: WatchlistStoring = AppAssembler.makeWatchlistStore(),
+        whatIfStore: WhatIfStoring = AppAssembler.makeWhatIfStore()
     ) {
         let source = dataSource ?? Self.savedDataSource()
         self.dataSource = source
         self.portfolioStore = portfolioStore
         self.watchlistStore = watchlistStore
+        self.whatIfStore = whatIfStore
         (market, searcher, simulator) = Self.makeMarket(for: source)
     }
 
@@ -66,6 +70,13 @@ final class AppAssembler {
             return WatchlistStore()
         }
         return WatchlistStore(repository: repository)
+    }
+
+    static func makeWhatIfStore() -> WhatIfStoring {
+        guard !usesInMemoryStorage, let repository = try? FileWhatIfRepository.defaultLocation() else {
+            return WhatIfStore()
+        }
+        return WhatIfStore(repository: repository)
     }
 
     private static var usesInMemoryStorage: Bool {
@@ -121,8 +132,11 @@ final class AppAssembler {
         let holdings = makeNavigationController(root: makeHoldings())
         holdings.tabBarItem = UITabBarItem(title: "Portfolio", image: UIImage(systemName: "briefcase.fill"), tag: 1)
 
+        let whatIf = makeNavigationController(root: makeWhatIfList())
+        whatIf.tabBarItem = UITabBarItem(title: "What If", image: UIImage(systemName: "clock.arrow.circlepath"), tag: 2)
+
         let tabBarController = UITabBarController()
-        tabBarController.viewControllers = [watchlist, holdings]
+        tabBarController.viewControllers = [watchlist, holdings, whatIf]
         tabBarController.tabBar.tintColor = Theme.Color.accent
         return tabBarController
     }
@@ -188,6 +202,29 @@ final class AppAssembler {
         presenter.viewController = viewController
         router.viewController = viewController
         return viewController
+    }
+
+    func makeWhatIfList() -> UIViewController {
+        let presenter = WhatIfListPresenter()
+        let interactor = WhatIfListInteractor(presenter: presenter, worker: WhatIfListWorker(market: market, store: whatIfStore))
+        let router = WhatIfListRouter(dataStore: interactor, makeBuilder: { [unowned self] in self.makeWhatIfBuilder() })
+        let viewController = WhatIfListViewController(interactor: interactor, router: router)
+
+        presenter.viewController = viewController
+        router.viewController = viewController
+        return viewController
+    }
+
+    func makeWhatIfBuilder() -> (viewController: UIViewController, dataStore: WhatIfBuilderDataStore) {
+        let presenter = WhatIfBuilderPresenter()
+        let worker = WhatIfBuilderWorker(market: market, watchlist: watchlistStore, store: whatIfStore)
+        let interactor = WhatIfBuilderInteractor(presenter: presenter, worker: worker)
+        let router = WhatIfBuilderRouter()
+        let viewController = WhatIfBuilderViewController(interactor: interactor, router: router)
+
+        presenter.viewController = viewController
+        router.viewController = viewController
+        return (viewController, interactor)
     }
 
     func makeTradeTicket() -> (viewController: UIViewController, dataStore: TradeTicketDataStore) {

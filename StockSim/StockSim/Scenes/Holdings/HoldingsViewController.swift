@@ -116,7 +116,8 @@ final class HoldingsViewController: UIViewController {
             let size = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .estimated(72))
             let group = NSCollectionLayoutGroup.vertical(layoutSize: size, subitems: [NSCollectionLayoutItem(layoutSize: size)])
             let section = NSCollectionLayoutSection(group: group)
-            section.interGroupSpacing = Theme.Spacing.s + 2
+            // Satır kartları aralarındaki boşluğu kendi içinde taşıyor (CardRowCell).
+            section.interGroupSpacing = 0
             section.contentInsets = NSDirectionalEdgeInsets(
                 top: Theme.Spacing.s, leading: Theme.Spacing.l, bottom: Theme.Spacing.l, trailing: Theme.Spacing.l
             )
@@ -137,12 +138,12 @@ final class HoldingsViewController: UIViewController {
             guard let card = self?.viewModel?.account else { return }
             cell.configure(with: card)
         }
-        let rowRegistration = UICollectionView.CellRegistration<HoldingsRowCell, ItemID> { [weak self] cell, _, id in
+        let rowRegistration = UICollectionView.CellRegistration<CardRowCell, ItemID> { [weak self] cell, _, id in
             switch id {
             case let .position(symbol):
-                if let row = self?.viewModel?.positions.first(where: { $0.id == symbol }) { cell.configure(with: row) }
+                if let row = self?.viewModel?.positions.first(where: { $0.id == symbol }) { cell.configure(with: .init(row)) }
             case let .trade(tradeID):
-                if let row = self?.viewModel?.activity.first(where: { $0.id == tradeID }) { cell.configure(with: row) }
+                if let row = self?.viewModel?.activity.first(where: { $0.id == tradeID }) { cell.configure(with: .init(row)) }
             default:
                 break
             }
@@ -220,5 +221,27 @@ extension HoldingsViewController: HoldingsDisplayLogic {
             // Yeni işlem / kapanan pozisyon: satırlar eklenip çıkarken animasyon.
             dataSource.apply(snapshot, animatingDifferences: !current.itemIdentifiers.isEmpty)
         }
+    }
+}
+
+// MARK: - Satır içeriği (ViewModel → kart satırı)
+
+private extension CardRowCell.Content {
+
+    init(_ row: Holdings.PositionRow) {
+        self.init(
+            badge: .text(row.monogram), badgeColor: Theme.Color.accent,
+            title: row.symbol, subtitle: row.summary, value: row.value,
+            detail: row.profitLoss, detailColor: row.trend.color
+        )
+    }
+
+    init(_ row: Holdings.ActivityRow) {
+        let isBuy = row.side == .buy
+        self.init(
+            badge: .symbol(isBuy ? "arrow.down.left" : "arrow.up.right"),
+            badgeColor: isBuy ? Theme.Color.up : Theme.Color.down,
+            title: row.title, subtitle: row.subtitle, value: row.amount, detail: nil
+        )
     }
 }

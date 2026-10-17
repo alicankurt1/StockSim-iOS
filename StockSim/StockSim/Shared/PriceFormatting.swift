@@ -1,6 +1,16 @@
 import Foundation
 import Domain
 
+private extension Decimal {
+    /// Belirtilen ondalık haneye yuvarlar (bankacı yuvarlaması değil, en yakına).
+    func rounded(_ scale: Int) -> Decimal {
+        var value = self
+        var result = Decimal()
+        NSDecimalRound(&result, &value, scale, .plain)
+        return result
+    }
+}
+
 /// Fiyatın yönü. Renk kararı enum olarak taşınır; `UIColor`'a çevirmek View'ın işi.
 enum PriceTrend {
     case up, down, flat
@@ -49,6 +59,15 @@ enum PriceFormatting {
     static func changePercent(_ percent: Decimal) -> String {
         let text = percentFormatter.string(from: percent as NSDecimalNumber) ?? ""
         return percent > 0 ? "+" + text : text
+    }
+
+    /// Kuruş sıfırsa göstermeyen kısa tutar: "₺100.000", "₺1.250,50".
+    static func amount(_ money: Money) -> String {
+        let isWhole = money.amount == money.amount.rounded(0)
+        guard isWhole else { return price(money) }
+        let formatter = priceFormatter.copy() as! NumberFormatter
+        formatter.maximumFractionDigits = 0
+        return formatter.string(from: money.amount as NSDecimalNumber) ?? price(money)
     }
 
     /// İşaretli tutar: "+₺12,00", "-₺5,00", "₺0,00" (kâr/zarar için).
