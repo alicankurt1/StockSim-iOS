@@ -183,10 +183,10 @@ public enum ChartRange: String, CaseIterable { case day, week, month, year }  //
 **Learns:** business rules in the interactor, mapping errors to view models.
 
 ### Phase 8 — Portfolio, history, persistence (~5 h)
-- [ ] Portfolio scene: positions, average cost, unrealized P&L, total value
-- [ ] Transaction history scene
-- [ ] `Persistence`: Codable JSON file store (actor, atomic writes, schema version)
-- [ ] Persistence tests in a temporary directory
+- [x] Portfolio scene: positions, average cost, unrealized P&L, total value
+- [x] Transaction history scene
+- [x] `Persistence`: Codable JSON file store (actor, atomic writes, schema version)
+- [x] Persistence tests in a temporary directory
 
 **Learns:** DIP (in-memory vs file store), persistence testing.
 

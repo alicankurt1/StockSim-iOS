@@ -26,6 +26,15 @@ public struct Position: Hashable, Sendable {
         self.realizedPnL = .zero
     }
 
+    /// Kaydedilmiş bir pozisyonu geri yüklemek için (Persistence). Kurallar atlanır;
+    /// değerler zaten kurallarla üretilmiş olarak kaydedilmişti.
+    public init(symbol: Symbol, quantity: Int, averageCost: Money, realizedPnL: Money) {
+        self.symbol = symbol
+        self.quantity = quantity
+        self.averageCost = averageCost
+        self.realizedPnL = realizedPnL
+    }
+
     // MARK: - Hesaplanan değerler
 
     /// Toplam maliyet: ortalama maliyet × adet.

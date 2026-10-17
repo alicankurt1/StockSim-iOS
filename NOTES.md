@@ -140,3 +140,23 @@ Büyük başlıklı listeden küçük başlıklı ekrana geçerken bar yüksekli
 
 **Aynı ekranda iki farklı "bugün" yüzdesi**
 Başlık önceki kapanışa göre, grafik günün ilk mumuna göre hesaplıyordu. Tek tanım: 1D değişimi = önceki kapanışa göre değişim; bir testle sabitlendi.
+
+## Phase 8 — Portföy, geçmiş, kalıcılık
+
+**Domain tiplerini neden doğrudan `Codable` yapmadık? (DTO)**
+Diskteki biçim (`PortfolioSnapshot`) ayrı bir tip. Domain depolama biçimini bilmez (SRP); bir alanın adı değişince eski kayıtlar bozulmaz, eşleme tek yerde yapılır. `schemaVersion` sayesinde eski/yeni dosyalar tanınır; daha yeni bir sürümün dosyası yanlış okunmak yerine açıkça reddedilir.
+
+**Para neden JSON'da metin?**
+JSON sayıları `Double` üzerinden okunabildiği için `Decimal`'in kuruş hassasiyeti kaybolabilir. "287.55" metni birebir geri gelir. Okurken `en_US_POSIX` locale: Türkçe cihazda ondalık ayırıcı virgül sanılmasın.
+
+**Atomik yazma nedir?**
+Önce geçici dosyaya yazılır, sonra tek hamlede eskisinin yerine konur. Yazma sırasında uygulama kapanırsa eski dosya sağlam kalır; yarım/bozuk dosya oluşmaz.
+
+**`PortfolioStore` kaydederken neden `await` etmiyor? (reentrancy)**
+Actor içinde `await` edilen noktada başka bir çağrı araya girebilir. Kayıt async olsaydı, iki emir arka arkaya geldiğinde kayıtlar karışık sırada bitebilirdi. Küçük bir JSON için senkron yazma yeterince hızlı ve actor main thread'de değil; bu yüzden repository protokolü bilerek senkron.
+
+**DIP + LSP: dosya deposu ve bellek deposu**
+Domain sadece `PortfolioRepository` protokolünü bilir. Uygulamada `FilePortfolioRepository`, testlerde `InMemoryPortfolioRepository`; ikisi birbirinin yerine geçer. Hangisinin kullanılacağına composition root karar verir (`-inMemoryPortfolio` ile UI testleri temiz başlar).
+
+**Tek ekranda farklı düzenli bölümler: compositional layout**
+Hesap kartı, pozisyonlar ve geçmiş tek collection view'da; layout her bölüme kendi `NSCollectionLayoutSection`'ını (başlıklı/başlıksız) verir. Satır kümesi aynıysa `reconfigureItems`, değiştiyse animasyonlu `apply`.

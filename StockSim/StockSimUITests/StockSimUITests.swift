@@ -7,6 +7,7 @@ final class StockSimUITests: XCTestCase {
     @MainActor
     func testLaunchShowsWatchlist() {
         let app = XCUIApplication()
+        app.launchArguments = ["-inMemoryPortfolio"]
         app.launch()
 
         XCTAssertTrue(app.navigationBars["Watchlist"].waitForExistence(timeout: 5))
