@@ -208,9 +208,9 @@ Yahoo's unofficial endpoint is fine for development and the demo; the data sourc
 **Learns:** debouncing with async/await, search UX states, reusing the repository pattern.
 
 ### Phase 10 — What-if tracker (~4 h)
-- [ ] Backward mode: symbol + date + amount → shares, today's value, P&L; buy point marked on chart
-- [ ] Forward mode: paper position opened at last close, tracked daily, persisted
-- [ ] Reuses Domain portfolio rules
+- [x] Backward mode: symbol + date + amount → shares, today's value, P&L; buy point marked on chart
+- [x] Forward mode: paper position opened at last close, tracked daily, persisted
+- [x] Reuses Domain portfolio rules
 
 **Learns:** reusing domain rules with a different price source.
 

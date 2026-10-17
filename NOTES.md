@@ -197,3 +197,17 @@ Yahoo'nun gün içi verisinde bir mum gün ortasında dünkü kapanışla geldi;
 
 **Auto Layout: boşluğu kim alır?**
 Edit modunda kart daralıp genişleyince sparkline'lar kayıyordu. Sebep: boşluğu alabilecek birden fazla aday vardı ve öncelikler belirsizdi. Dersler: (1) Stack view'a verilen hugging önceliği etkisizdir (intrinsic boyutu yok), öncelik içindeki etiketlere verilir. (2) Sağa yaslı (alignment .trailing) bir stack içeriğinden geniş olabilir; bunu engelleyen düşük öncelikli bir "dar ol" kuralı (`width == 0`, `.fittingSizeLevel`) gerekir. Sonuç: boşluk her zaman isim sütununa gider.
+
+## Phase 10 — "Ya alsaydım?"
+
+**Desen tekrar kullanılınca yeni özellik hızlı gelir**
+Senaryo deposu (`WhatIfStore` actor + dosya deposu + değişiklik akışı) portföy ve izleme listesiyle birebir aynı desen. Liste ekranı da Watchlist'teki "liste değişince fiyat akışına yeniden abone ol" desenini kullanıyor. Tutarlı mimarinin getirisi: yeni özellik çoğunlukla bilinen parçaların yeni bir birleşimi.
+
+**Hesap Domain'de, kesirli adet bilinçli**
+`WhatIfScenario` "o para bugün ne olurdu" sorusunu cevaplar; emir kuralı değil. 100.000 ₺ / 287,50 ₺ = 347,83 adet. Alım fiyatı seçilen günün mumunun açılışı; hafta sonu/tatilse sonraki ilk işlem günü (`WhatIfCalculator.entryIndex`). Son 1 ay günlük, daha eskisi haftalık mumlarla.
+
+**Düzenleme için yeni ekran değil: DataPassing**
+Satıra dokununca aynı oluşturucu açılır; liste Router'ı seçilen senaryoyu oluşturucunun DataStore'una (`editing`) yazar. DataStore boşsa "yeni", doluysa "düzenle". Kaydetme aynı kimlikle `update` eder; listede yerinde değişir. İki ayrı ekran yazsaydık zamanla birbirinden farklılaşırlardı.
+
+**Ortak hücre (DRY)**
+Portföy ve What If satırları aynı `CardRowCell`'i kullanır; ViewModel → hücre içeriği eşlemesi her sahnenin kendi küçük extension'ında. Auto Layout düzeltmesi tek yerde.

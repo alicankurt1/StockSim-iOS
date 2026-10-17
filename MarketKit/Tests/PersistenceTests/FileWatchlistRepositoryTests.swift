@@ -42,3 +42,24 @@ struct FileWatchlistRepositoryTests {
         #expect(!symbols.contains("THYAO"))
     }
 }
+
+struct FileWhatIfRepositoryTests {
+
+    /// Senaryolar (kesirli bölmeye yol açan tutarlar dahil) birebir geri gelir.
+    @Test func roundTrip() throws {
+        let file = FileManager.default.temporaryDirectory
+            .appendingPathComponent("StockSimTests-\(UUID().uuidString)")
+            .appendingPathComponent("what-if.json")
+        let repository = FileWhatIfRepository(fileURL: file)
+        let scenarios = [WhatIfScenario(
+            instrument: Instrument(symbol: Symbol("SISE"), name: "Şişecam"),
+            amount: Money(100_000),
+            startDate: Date(timeIntervalSince1970: 1_800_000_000),
+            entryPrice: Money(Decimal(string: "41.72")!)
+        )]
+
+        try repository.save(scenarios)
+
+        #expect(try repository.load() == scenarios)
+    }
+}
