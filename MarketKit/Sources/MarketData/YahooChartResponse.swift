@@ -68,12 +68,13 @@ extension YahooChartResponse.Result {
         )
     }
 
-    /// Mumlar. Değerlerinden biri `null` olan satırlar atlanır (işlem olmayan dakika/gün).
+    /// Mumlar. Değerlerinden biri `null` olan satırlar atlanır (işlem olmayan dakika/gün);
+    /// tekil hatalı fiyat kayıtları ("bad tick") temizlenir.
     func candles() -> [Candle] {
         guard let times = timestamp, let series = indicators?.quote?.first else { return [] }
         let opens = series.open ?? [], highs = series.high ?? [], lows = series.low ?? [], closes = series.close ?? []
 
-        return times.indices.compactMap { index in
+        let parsed: [Candle] = times.indices.compactMap { index in
             guard index < opens.count, index < highs.count, index < lows.count, index < closes.count,
                   let open = opens[index], let high = highs[index], let low = lows[index], let close = closes[index]
             else { return nil }
@@ -85,6 +86,31 @@ extension YahooChartResponse.Result {
                 close: YahooMoney.money(close)
             )
         }
+        return Self.removingIsolatedSpikes(parsed)
+    }
+
+    /// Gerçek veride bazen tek bir mum saçma bir fiyatla gelir (ör. gün ortasında dünkü kapanış).
+    /// Kural: kapanışı iki komşusundan da `threshold`'dan fazla sapan, ama komşuları birbirine
+    /// yakın olan (fiyat hemen eski yerine dönmüş) TEKİL nokta hatalı sayılır ve atılır.
+    /// Gerçek sert hareketler ardışık mumlarda sürdüğü için bu kurala takılmaz.
+    static func removingIsolatedSpikes(_ candles: [Candle], threshold: Decimal = Decimal(string: "0.01")!) -> [Candle] {
+        guard candles.count >= 3 else { return candles }
+        func distance(_ a: Money, _ b: Money) -> Decimal {
+            let base = b.amount
+            guard base > 0 else { return 0 }
+            let difference = a.amount - b.amount
+            return (difference < 0 ? -difference : difference) / base
+        }
+        var cleaned: [Candle] = [candles[0]]
+        for index in 1..<(candles.count - 1) {
+            let previous = candles[index - 1].close, current = candles[index].close, next = candles[index + 1].close
+            let isSpike = distance(current, previous) > threshold
+                && distance(current, next) > threshold
+                && distance(previous, next) < threshold / 2
+            if !isSpike { cleaned.append(candles[index]) }
+        }
+        cleaned.append(candles[candles.count - 1])
+        return cleaned
     }
 
     private var lastClose: Double? {

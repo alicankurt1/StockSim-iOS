@@ -141,14 +141,19 @@ final class HoldingsRowCell: UICollectionViewCell {
         let titles = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
         titles.axis = .vertical
         titles.spacing = Theme.Spacing.xs
-        titles.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        // Boşluğu her zaman başlık etiketleri alsın; değer etiketleri ne esnesin ne sıkışsın
+        // (stack view'ın kendi önceliği etkisiz, öncelik etiketlere verilir).
+        [titleLabel, subtitleLabel].forEach { $0.setContentHuggingPriority(UILayoutPriority(1), for: .horizontal) }
+        [valueLabel, detailLabel].forEach {
+            $0.setContentHuggingPriority(.required, for: .horizontal)
+            $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+        }
         subtitleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
         let values = UIStackView(arrangedSubviews: [valueLabel, detailLabel])
         values.axis = .vertical
         values.alignment = .trailing
         values.spacing = Theme.Spacing.xs
-        values.setContentCompressionResistancePriority(.required, for: .horizontal)
 
         let row = UIStackView(arrangedSubviews: [badge, titles, values])
         row.alignment = .center

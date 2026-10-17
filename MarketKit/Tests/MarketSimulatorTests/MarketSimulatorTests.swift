@@ -221,4 +221,33 @@ struct MarketSimulatorTests {
     @Test func instrumentsComeFromConfiguration() async {
         #expect(await makeSimulator().instruments().map(\.symbol) == [thyao, asels])
     }
+
+    // MARK: - İzleme listesine sonradan eklenen hisseler
+
+    /// Rehberdeki ama yapılandırmada olmayan hisse: istenince fiyatlanmaya başlar,
+    /// başlangıç fiyatı koddan türetildiği için her açılışta aynıdır.
+    @Test func unknownDirectorySymbolIsPricedDeterministically() async throws {
+        let aksa = Symbol("AKSA")
+        let first = try #require(await makeSimulator().quotes(for: [aksa]).first)
+        let second = try #require(await makeSimulator(seed: 99).quotes(for: [aksa]).first)
+
+        #expect(first.price == second.price)
+        #expect(first.price > Money(20) && first.price < Money(500))
+    }
+
+    @Test func activatedSymbolMovesWithTicksAndHasHistory() async throws {
+        let simulator = makeSimulator()
+        let aksa = Symbol("AKSA")
+        _ = await simulator.quotes(for: [aksa])
+        let before = await simulator.rawPrice(of: aksa)
+
+        for _ in 0..<5 { await simulator.tick() }
+
+        #expect(await simulator.rawPrice(of: aksa) != before)
+        #expect(try await simulator.history(for: aksa, range: .month).count == 22)
+    }
+
+    @Test func searchUsesTheOfflineDirectory() async {
+        #expect(await makeSimulator().searchInstruments(matching: "aks").map(\.symbol.rawValue) == ["AKSA", "AKSEN"])
+    }
 }

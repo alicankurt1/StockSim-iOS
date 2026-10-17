@@ -34,7 +34,10 @@ final class WatchlistPresenter: WatchlistPresentationLogic {
                 sparkline: response.sparklines[instrument.symbol] ?? []
             ))
         }
-        viewController?.displayWatchlist(viewModel: Watchlist.Load.ViewModel(items: items))
+        viewController?.displayWatchlist(viewModel: Watchlist.Load.ViewModel(
+            items: items,
+            emptyMessage: items.isEmpty ? "Your watchlist is empty.\nTap + to add stocks." : nil
+        ))
     }
 
     func presentLoadError() {

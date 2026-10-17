@@ -11,7 +11,7 @@ import Domain
 ///
 /// Not: Resmî olmayan bir uç nokta; geliştirme ve demo içindir. Kaynak protokolün arkasında
 /// olduğu için lisanslı bir sağlayıcı ileride bu tipin yerine yazılabilir.
-public actor YahooMarketProvider: MarketDataProviding {
+public actor YahooMarketProvider: MarketDataProviding, SymbolSearching {
 
     private let client: HTTPClient
     private let catalog: [Instrument]
@@ -106,6 +106,36 @@ public actor YahooMarketProvider: MarketDataProviding {
         }
         continuation.onTermination = { _ in poller.cancel() }
         return stream
+    }
+
+    // MARK: - Arama
+
+    /// Yahoo araması tüm dünya borsalarını döndürür; sadece İstanbul'daki (".IS") hisse
+    /// senetlerini alıp ".IS" ekini atıyoruz: "AKSA.IS" → AKSA.
+    public func searchInstruments(matching query: String) async throws -> [Instrument] {
+        let trimmed = query.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return [] }
+
+        var components = URLComponents(string: "https://query1.finance.yahoo.com/v1/finance/search")!
+        components.queryItems = [
+            URLQueryItem(name: "q", value: trimmed),
+            URLQueryItem(name: "quotesCount", value: "30"),
+            URLQueryItem(name: "newsCount", value: "0"),
+        ]
+        var request = URLRequest(url: components.url!)
+        request.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
+        request.timeoutInterval = 15
+
+        let (data, response) = try await client.data(for: request)
+        guard (200..<300).contains(response.statusCode) else {
+            throw MarketDataError.unavailable("HTTP \(response.statusCode)")
+        }
+        let decoded = try JSONDecoder().decode(YahooSearchResponse.self, from: data)
+        return (decoded.quotes ?? []).compactMap { item in
+            guard item.quoteType == "EQUITY", item.symbol.hasSuffix(".IS") else { return nil }
+            let code = String(item.symbol.dropLast(3))
+            return Instrument(symbol: Symbol(code), name: item.longname ?? item.shortname ?? code)
+        }
     }
 
     // MARK: - İstek

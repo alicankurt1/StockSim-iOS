@@ -43,6 +43,16 @@ enum Fixture {
     {"chart":{"result":null,"error":{"code":"Not Found","description":"No data found, symbol may be delisted"}}}
     """
 
+    /// Arama: farklı borsalar ve bir fon karışık; sadece ".IS" hisse senetleri alınmalı.
+    static let search = """
+    {"quotes":[
+      {"symbol":"AHG","shortname":"Akso Health Group","quoteType":"EQUITY"},
+      {"symbol":"AKSA.IS","shortname":"AKSA","longname":"Aksa Akrilik Kimya Sanayii A.S.","quoteType":"EQUITY"},
+      {"symbol":"0P0001A2PM.IS","shortname":"Some Fund","quoteType":"MUTUALFUND"},
+      {"symbol":"AKSEN.IS","shortname":"AKSA ENERJI","quoteType":"EQUITY"}
+    ]}
+    """
+
     static func data(_ json: String) -> Data { Data(json.utf8) }
 }
 
@@ -78,6 +88,7 @@ final class StubHTTPClient: HTTPClient, @unchecked Sendable {
         let url = request.url!
         let reply: Reply = lock.withLock {
             requestedURLs.append(url)
+            // Arama isteğinde anahtar "search", grafik isteğinde hisse kodu ("THYAO.IS").
             let symbol = url.lastPathComponent
             if var queue = replies[symbol], !queue.isEmpty {
                 let next = queue.removeFirst()

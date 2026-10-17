@@ -17,6 +17,18 @@ struct DelayedWatchlistWorker: WatchlistWorking {
         return try await base.fetchInstruments()
     }
 
+    func watchlistChanges() async -> AsyncStream<[Instrument]> {
+        await base.watchlistChanges()
+    }
+
+    func removeFromWatchlist(_ symbol: Symbol) async {
+        await base.removeFromWatchlist(symbol)
+    }
+
+    func reorderWatchlist(_ symbols: [Symbol]) async {
+        await base.reorderWatchlist(symbols)
+    }
+
     func fetchQuotes(for symbols: [Symbol]) async throws -> [Quote] {
         try await base.fetchQuotes(for: symbols)
     }

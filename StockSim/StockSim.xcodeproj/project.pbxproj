@@ -7,11 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D8AA0024307A930000632E1F /* MarketData in Frameworks */ = {isa = PBXBuildFile; productRef = D8AA0014307A930000632E1F /* MarketData */; };
 		D8AA0020307A930000632E1F /* Domain in Frameworks */ = {isa = PBXBuildFile; productRef = D8AA0010307A930000632E1F /* Domain */; };
 		D8AA0021307A930000632E1F /* MarketSimulator in Frameworks */ = {isa = PBXBuildFile; productRef = D8AA0011307A930000632E1F /* MarketSimulator */; };
 		D8AA0022307A930000632E1F /* Persistence in Frameworks */ = {isa = PBXBuildFile; productRef = D8AA0012307A930000632E1F /* Persistence */; };
 		D8AA0023307A930000632E1F /* Charts in Frameworks */ = {isa = PBXBuildFile; productRef = D8AA0013307A930000632E1F /* Charts */; };
+		D8AA0024307A930000632E1F /* MarketData in Frameworks */ = {isa = PBXBuildFile; productRef = D8AA0014307A930000632E1F /* MarketData */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
