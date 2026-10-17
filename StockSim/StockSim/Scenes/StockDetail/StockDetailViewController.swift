@@ -352,6 +352,11 @@ extension StockDetailViewController: StockDetailDisplayLogic {
         rangeControl.selectedSegmentIndex = viewModel.selectedRangeIndex
 
         chartView.setData(chartData(viewModel.chart), lineColor: viewModel.chart.trend.color, animated: true)
+        // VoiceOver: grafiği çizgi olarak değil, bir özet olarak okur.
+        chartView.isAccessibilityElement = true
+        chartView.accessibilityLabel = "Price chart, \(viewModel.rangeTitles[viewModel.selectedRangeIndex])"
+        chartView.accessibilityValue = "\(viewModel.rangeChange). High \(viewModel.high), low \(viewModel.low)."
+        chartView.accessibilityHint = "Touch and hold, then drag to inspect prices."
         rangeChangeLabel.text = viewModel.rangeChange
         rangeChangeLabel.textColor = viewModel.rangeTrend.color
         highValueLabel.text = viewModel.high

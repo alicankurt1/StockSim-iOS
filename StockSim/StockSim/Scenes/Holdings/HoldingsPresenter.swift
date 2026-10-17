@@ -47,7 +47,8 @@ final class HoldingsPresenter: HoldingsPresentationLogic {
             id: position.symbol,
             symbol: position.symbol.rawValue,
             monogram: String(position.symbol.rawValue.prefix(2)),
-            summary: "\(PriceFormatting.shares(position.quantity)) · Avg \(PriceFormatting.price(position.averageCost))",
+            // Satırda yer dar (sağda K/Z hapı var): "100 × ₺138,90" = 100 adet, ortalama maliyet.
+            summary: "\(position.quantity) × \(PriceFormatting.price(position.averageCost))",
             value: PriceFormatting.price(position.marketValue(at: current)),
             profitLoss: "\(PriceFormatting.signedPrice(profitLoss)) (\(PriceFormatting.changePercent(percent)))",
             trend: PriceTrend(changePercent: percent)

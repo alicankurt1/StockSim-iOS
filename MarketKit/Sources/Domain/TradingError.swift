@@ -8,6 +8,6 @@ public enum TradingError: Error, Equatable, Sendable {
     case insufficientCash(available: Money, required: Money)
     /// Emir tipi şu anki fiyattan gerçekleşemiyor (ör. limit fiyata ulaşılmadı).
     case orderNotFillable
-    /// Hissede işlem durduruldu (simülatörün `halt` tetikleyicisi). Phase 7'de kullanılacak.
+    /// Hissede işlem durduruldu (simülatörün `halt` tetikleyicisi).
     case marketHalted(Symbol)
 }

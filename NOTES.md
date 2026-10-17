@@ -248,3 +248,22 @@ Fiyatlar her 100 ms'de 120'lik bir patlama halinde gelir; her patlama bir kareye
 
 **os_signpost ile ölçüm**
 `OSSignposter` aralıkları ("Watchlist apply", "N rows") Instruments'ta zaman çizelgesinde görünür; `xctrace export` ile XML'e alınıp sayılabilir. Ölçüm kodu üretimde neredeyse bedavadır.
+
+## Phase 13 — Cila ve yayın hazırlığı
+
+**Ekran görüntüleri için demo modu**
+`-demoData` bellekte hazır bir hesap ve senaryolarla açılır; kayıtlı veriye dokunmaz. Görseller her seferinde aynı ve temiz çıkar; yeniden çekmek tek komut. Durum çubuğu `simctl status_bar override` ile 9:41 / tam pil yapılır.
+
+**Ekran görüntüsü çekerken bulunan hatalar**
+- Portföy satırında alt satır kırpılıyordu → "100 × ₺138,90" kısa biçimi.
+- Düzenlemede alım fiyatı geçmişten yeniden hesaplanıyordu; liste +%24 derken düzenleme -%1,6 gösterdi. Kaydedilmiş alım fiyatı bir olgudur: sadece hisse ya da tarih değişince yeniden hesaplanır (testle sabit).
+Ders: Gerçek veriyle, gerçek ekranda bakmak testlerin kaçırdığını yakalar.
+
+**Erişilebilirlik**
+Dynamic Type: tema fontları `UIFontMetrics` ile ölçeklenir; sabit kutulu rozetlerde üst sınır. VoiceOver: grafik "Price chart, 1D: +%0,84 · Today, High…, Low…" diye özetlenir, ipucu crosshair kullanımını anlatır.
+
+**Koyu tema ve açılış ekranı**
+`UIUserInterfaceStyle = Dark` sistem seviyesinde (alert ve sheet'ler de tutarlı). Açılış ekranı storyboard yerine Info.plist'te tek renk (`UILaunchScreen`): koyu uygulamada beyaz yanıp sönme yok.
+
+**Lisans ve yayın kararı**
+MIT lisansı. Dağıtım TestFlight public link ile; gerçek veri (resmî olmayan uç nokta, BIST veri lisansı) dağıtım derlemesinde kapalı olacak.

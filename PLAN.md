@@ -228,15 +228,19 @@ Yahoo's unofficial endpoint is fine for development and the demo; the data sourc
 **Learns:** measure → change → measure.
 
 ### Phase 13 — Polish & publish (~3 h)
-- [ ] Dark mode pass, basic accessibility
-- [ ] README GIFs, disclaimer, cleanup
+- [x] Dark-only appearance at system level; dark launch screen (no white flash)
+- [x] Accessibility: Dynamic Type scaling in the theme, VoiceOver summaries for charts and rows
+- [x] App icon
+- [x] MIT license, README rewrite (features, architecture, performance, disclaimer), screenshots / GIF
+- [x] Cleanup
 
-### Phase 14 — App Store release (~3–4 h)
-- [ ] App icon, launch screen, in-app disclaimer ("simulated, not investment advice")
-- [ ] Real-data mode decision: ship simulator-only unless a data source with redistribution rights is used (re-evaluate free / delayed APIs with clear terms before release)
-- [ ] Legal checklist: in-app and App Store disclaimers (simulation, delayed data, not investment advice), terms of use page, trademark check for ticker / company names
-- [ ] Privacy policy page (no data collected), App Privacy label, age rating
-- [ ] TestFlight build, App Store screenshots and description
+### Phase 14 — TestFlight public beta (~3 h)
+Decision: distribute through a **TestFlight public link**, not the App Store. The repo is MIT-licensed.
+- [ ] Distribution build flag: real-data mode (Yahoo) compiled out; simulated market only
+- [ ] Fictional companies in the distribution build, clear "SIMULATED" labeling; What If labeled as a simulation
+- [ ] In-app "About" screen: educational simulation, not investment advice, no data collected, licenses
+- [ ] Privacy policy page (no data collected) for App Store Connect
+- [ ] Archive, upload, beta app review, public link
 
 **Total:** ~50–60 h. Demo clips are collected under `docs/media/` at the end of each visual phase.
 

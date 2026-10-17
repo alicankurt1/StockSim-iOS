@@ -31,13 +31,22 @@ enum Theme {
         static let skeletonHighlight = UIColor.dynamic(light: UIColor(hex: 0xF5F8FC), dark: UIColor(hex: 0x2A3A60))
     }
 
+    /// Fontlar Dynamic Type ile ölçeklenir: kullanıcı Ayarlar'dan yazı boyutunu büyütürse
+    /// tasarım boyutları da orantılı büyür (`UIFontMetrics`). Rozet gibi sabit kutulu
+    /// öğelerde büyüme sınırlı (`maximumPointSize`), taşmasın diye.
     enum Font {
-        static let symbol = UIFont.systemFont(ofSize: 16, weight: .semibold)
-        static let name = UIFont.systemFont(ofSize: 13, weight: .regular)
+        static let symbol = scaled(.systemFont(ofSize: 16, weight: .semibold), style: .headline)
+        static let name = scaled(.systemFont(ofSize: 13, weight: .regular), style: .subheadline)
         /// Rakamlar sabit genişlikte: fiyat değişirken metin titremesin.
-        static let price = UIFont.monospacedDigitSystemFont(ofSize: 16, weight: .semibold)
-        static let change = UIFont.monospacedDigitSystemFont(ofSize: 12, weight: .semibold)
-        static let monogram = UIFont.systemFont(ofSize: 13, weight: .bold)
+        static let price = scaled(.monospacedDigitSystemFont(ofSize: 16, weight: .semibold), style: .body)
+        static let change = scaled(.monospacedDigitSystemFont(ofSize: 12, weight: .semibold), style: .caption1, maximum: 18)
+        static let monogram = scaled(.systemFont(ofSize: 13, weight: .bold), style: .caption1, maximum: 15)
+
+        static func scaled(_ font: UIFont, style: UIFont.TextStyle, maximum: CGFloat? = nil) -> UIFont {
+            let metrics = UIFontMetrics(forTextStyle: style)
+            if let maximum { return metrics.scaledFont(for: font, maximumPointSize: maximum) }
+            return metrics.scaledFont(for: font)
+        }
     }
 
     enum Spacing {
