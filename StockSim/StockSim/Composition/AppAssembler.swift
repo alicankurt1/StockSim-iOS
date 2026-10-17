@@ -34,21 +34,42 @@ final class AppAssembler {
     /// Fiyat kaynağı. Ekranlar sadece `MarketDataProviding`'i bilir (LSP): simülatör ya da
     /// gerçek veri birbirinin yerine geçer, hiçbir sahne değişmez.
     private var market: any MarketDataProviding
+    /// Hisse arama: simülatörde çevrimdışı rehber, gerçek veride Yahoo (ikisi de aynı protokol).
+    private var searcher: any SymbolSearching
     /// Simülatör seçiliyse onu başlatıp durdurmak için (gerçek veride `nil`).
     private var simulator: MarketSimulator?
     private(set) var dataSource: MarketDataSource
     /// Tek sanal hesap: tüm ekranlar aynı actor'ü paylaşır (kaynak değişse de hesap aynı).
     private let portfolioStore: PortfolioStoring
+    /// Kişisel izleme listesi: kaynak değişse de aynı liste.
+    private let watchlistStore: WatchlistStoring
     /// Kaynak değişince kök ekranı yeniden kurmak için.
     weak var window: UIWindow?
 
     private static let dataSourceKey = "marketDataSource"
 
-    init(dataSource: MarketDataSource? = nil, portfolioStore: PortfolioStoring = AppAssembler.makePortfolioStore()) {
+    init(
+        dataSource: MarketDataSource? = nil,
+        portfolioStore: PortfolioStoring = AppAssembler.makePortfolioStore(),
+        watchlistStore: WatchlistStoring = AppAssembler.makeWatchlistStore()
+    ) {
         let source = dataSource ?? Self.savedDataSource()
         self.dataSource = source
         self.portfolioStore = portfolioStore
-        (market, simulator) = Self.makeMarket(for: source)
+        self.watchlistStore = watchlistStore
+        (market, searcher, simulator) = Self.makeMarket(for: source)
+    }
+
+    /// İzleme listesi cihazda kalıcı (`-inMemoryStorage` ile UI testleri temiz başlar).
+    static func makeWatchlistStore() -> WatchlistStoring {
+        guard !usesInMemoryStorage, let repository = try? FileWatchlistRepository.defaultLocation() else {
+            return WatchlistStore()
+        }
+        return WatchlistStore(repository: repository)
+    }
+
+    private static var usesInMemoryStorage: Bool {
+        ProcessInfo.processInfo.arguments.contains("-inMemoryStorage")
     }
 
     private static func savedDataSource() -> MarketDataSource {
@@ -56,13 +77,14 @@ final class AppAssembler {
         return UserDefaults.standard.string(forKey: dataSourceKey).flatMap(MarketDataSource.init) ?? .simulated
     }
 
-    private static func makeMarket(for source: MarketDataSource) -> (any MarketDataProviding, MarketSimulator?) {
+    private static func makeMarket(for source: MarketDataSource) -> (any MarketDataProviding, any SymbolSearching, MarketSimulator?) {
         switch source {
         case .simulated:
             let simulator = MarketSimulator()
-            return (simulator, simulator)
+            return (simulator, simulator, simulator)
         case .delayed:
-            return (YahooMarketProvider(), nil)
+            let provider = YahooMarketProvider()
+            return (provider, provider, nil)
         }
     }
 
@@ -72,7 +94,7 @@ final class AppAssembler {
         if let simulator { Task { await simulator.stop() } }
         dataSource = source
         UserDefaults.standard.set(source.rawValue, forKey: Self.dataSourceKey)
-        (market, simulator) = Self.makeMarket(for: source)
+        (market, searcher, simulator) = Self.makeMarket(for: source)
 
         guard let window else { return }
         let root = makeRootViewController()
@@ -82,10 +104,9 @@ final class AppAssembler {
     }
 
     /// Hesap cihazda bir JSON dosyasında kalıcı. Domain sadece `PortfolioRepository`'yi bilir;
-    /// dosya mı, bellek mi burada seçilir (DIP). `-inMemoryPortfolio`: UI testleri temiz başlasın diye.
+    /// dosya mı, bellek mi burada seçilir (DIP). `-inMemoryStorage`: UI testleri temiz başlasın diye.
     static func makePortfolioStore() -> PortfolioStoring {
-        let arguments = ProcessInfo.processInfo.arguments
-        guard !arguments.contains("-inMemoryPortfolio"), let repository = try? FilePortfolioRepository.defaultLocation() else {
+        guard !usesInMemoryStorage, let repository = try? FilePortfolioRepository.defaultLocation() else {
             return PortfolioStore()
         }
         return PortfolioStore(repository: repository)
@@ -120,11 +141,27 @@ final class AppAssembler {
     func makeWatchlist() -> UIViewController {
         let presenter = WatchlistPresenter()
         let interactor = WatchlistInteractor(presenter: presenter, worker: makeWatchlistWorker())
-        let router = WatchlistRouter(dataStore: interactor, makeStockDetail: { [unowned self] in self.makeStockDetail() })
+        let router = WatchlistRouter(
+            dataStore: interactor,
+            makeStockDetail: { [unowned self] in self.makeStockDetail() },
+            makeSearch: { [unowned self] in self.makeStockSearch() }
+        )
         let viewController = WatchlistViewController(interactor: interactor, router: router)
         viewController.navigationItem.rightBarButtonItem = makeDataSourceItem()
 
         // Geri bağlantılar weak: VC → Interactor → Presenter ⇢ VC, VC → Router ⇢ VC
+        presenter.viewController = viewController
+        router.viewController = viewController
+        return viewController
+    }
+
+    func makeStockSearch() -> UIViewController {
+        let presenter = StockSearchPresenter()
+        let worker = StockSearchWorker(searcher: searcher, watchlist: watchlistStore)
+        let interactor = StockSearchInteractor(presenter: presenter, worker: worker)
+        let router = StockSearchRouter()
+        let viewController = StockSearchViewController(interactor: interactor, router: router)
+
         presenter.viewController = viewController
         router.viewController = viewController
         return viewController
@@ -193,7 +230,7 @@ final class AppAssembler {
 
     /// `-slowLoading` argümanıyla açılırsa Worker'ı geciktiren sarmalayıcıyla kurar (skeleton'ı görmek için).
     private func makeWatchlistWorker() -> WatchlistWorking {
-        let worker = WatchlistWorker(market: market)
+        let worker = WatchlistWorker(market: market, watchlist: watchlistStore)
         guard ProcessInfo.processInfo.arguments.contains("-slowLoading") else { return worker }
         return DelayedWatchlistWorker(base: worker, delay: .seconds(2))
     }

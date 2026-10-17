@@ -11,7 +11,10 @@ import Charts
 /// ```
 /// İki hali var: veri (`configure(with:)`) ve yükleniyor (`showPlaceholder()`).
 /// Hücreler yeniden kullanıldığı (reuse) için her `configure` tüm alanları baştan ayarlar.
-final class WatchlistCell: UICollectionViewCell {
+/// `UICollectionViewListCell`: kaydırarak silme ve sürükleyerek sıralama sadece liste
+/// hücrelerinde var. Kart görünümü hücrenin kendisinde değil, içindeki `card` view'ında;
+/// böylece kartlar arasında boşluk kalır ve sistemin düzenleme düğmeleri kartın dışında durur.
+final class WatchlistCell: UICollectionViewListCell {
 
     private let monogramLabel = UILabel()
     private let symbolLabel = UILabel()
@@ -20,6 +23,7 @@ final class WatchlistCell: UICollectionViewCell {
     private let changeLabel = PaddedLabel()
     private let sparklineView = SparklineView()
 
+    private let card = UIView()
     private let contentStack = UIStackView()
     private let skeletonStack = UIStackView()
 
@@ -115,11 +119,22 @@ final class WatchlistCell: UICollectionViewCell {
     // MARK: - Kurulum
 
     private func setUpCard() {
-        contentView.backgroundColor = Theme.Color.surface
-        contentView.layer.cornerRadius = Theme.Radius.card
-        contentView.layer.cornerCurve = .continuous
-        contentView.layer.borderWidth = 1
-        contentView.layer.borderColor = Theme.Color.border.cgColor
+        // Liste hücresinin varsayılan arka planı (ve seçim gri'si) yerine şeffaf: görünüm kartta.
+        backgroundConfiguration = .clear()
+        card.backgroundColor = Theme.Color.surface
+        card.layer.cornerRadius = Theme.Radius.card
+        card.layer.cornerCurve = .continuous
+        card.layer.borderWidth = 1
+        card.layer.borderColor = Theme.Color.border.cgColor
+        card.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(card)
+        // Kartlar arası boşluk: üstte ve altta 5'er pt.
+        NSLayoutConstraint.activate([
+            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5),
+            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -5),
+            card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+        ])
     }
 
     private func setUpContent() {
@@ -143,9 +158,28 @@ final class WatchlistCell: UICollectionViewCell {
 
         let titles = verticalStack([symbolLabel, nameLabel], alignment: .leading)
         let values = verticalStack([priceLabel, changeLabel], alignment: .trailing)
-        // İsim uzunsa önce o kısalsın, fiyat hep tam görünsün.
-        values.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+        // Kartın içindeki boş alanı KİM doldursun? Açıkça söylemezsek Auto Layout eşit öncelikli
+        // etiketler arasında rastgele seçer: boşluk bazen isim, bazen fiyat sütununa gider ve
+        // sparkline kayar. Not: stack view'ın kendi hugging önceliği işe yaramaz (intrinsic
+        // boyutu yok); öncelik içindeki etiketlere verilir.
+        // - İsim etiketleri en kolay esneyen: boşluğu her zaman onlar alır.
+        // - Fiyat etiketleri hiç esnemez ve sıkışmaz: fiyat hep tam görünür.
+        // - İsim uzunsa önce o kısalır (…).
+        [symbolLabel, nameLabel].forEach { $0.setContentHuggingPriority(UILayoutPriority(1), for: .horizontal) }
+        [priceLabel, changeLabel].forEach {
+            $0.setContentHuggingPriority(.required, for: .horizontal)
+            $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+        }
         nameLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+
+        // Fiyat sütunu bir stack: etiketler sağa yaslı olduğu için stack'in kendisi içeriğinden
+        // GENİŞ olabilir ve bunu engelleyen kural yoktu → Auto Layout boşluğu "bedava" buraya
+        // verebiliyordu (sparkline sola kayıyordu). Bu kural sütunu olabildiğince daraltır;
+        // önceliği isim etiketlerinin esnemesinden (1) yüksek, böylece boşluk hep isim tarafına gider.
+        let hugValues = values.widthAnchor.constraint(equalToConstant: 0)
+        hugValues.priority = .fittingSizeLevel
+        hugValues.isActive = true
 
         contentStack.addArrangedSubview(monogramLabel)
         contentStack.addArrangedSubview(titles)
@@ -167,8 +201,12 @@ final class WatchlistCell: UICollectionViewCell {
         let left = verticalStack([shimmer(width: 64, height: 14), shimmer(width: 120, height: 11)], alignment: .leading)
         let right = verticalStack([shimmer(width: 72, height: 14), shimmer(width: 52, height: 18)], alignment: .trailing)
 
+        // İskelette tüm kutular sabit genişlikte; boşluğu bu esnek ara view alır.
+        let spacer = UIView()
+        spacer.setContentHuggingPriority(UILayoutPriority(1), for: .horizontal)
         skeletonStack.addArrangedSubview(monogram)
         skeletonStack.addArrangedSubview(left)
+        skeletonStack.addArrangedSubview(spacer)
         skeletonStack.addArrangedSubview(shimmer(width: 64, height: 28))
         skeletonStack.addArrangedSubview(right)
         configureRowStack(skeletonStack)
@@ -186,17 +224,14 @@ final class WatchlistCell: UICollectionViewCell {
         stack.alignment = .center
         stack.spacing = Theme.Spacing.m
         stack.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(stack)
+        card.addSubview(stack)
 
-        // Başlık sütunu boşluğu doldursun, sağdaki sütun sağa yaslansın.
-        stack.arrangedSubviews[1].setContentHuggingPriority(.defaultLow, for: .horizontal)
-        stack.arrangedSubviews.last?.setContentHuggingPriority(.required, for: .horizontal)
 
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Theme.Spacing.l),
-            stack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Theme.Spacing.l),
-            stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: Theme.Spacing.m),
-            stack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -Theme.Spacing.m),
+            stack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: Theme.Spacing.l),
+            stack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -Theme.Spacing.l),
+            stack.topAnchor.constraint(equalTo: card.topAnchor, constant: Theme.Spacing.m),
+            stack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -Theme.Spacing.m),
         ])
     }
 
@@ -224,7 +259,7 @@ final class WatchlistCell: UICollectionViewCell {
         super.traitCollectionDidChange(previousTraitCollection)
         // `layer.borderColor` CGColor'dır; mod değişiminde kendiliğinden güncellenmez.
         if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
-            contentView.layer.borderColor = Theme.Color.border.resolvedColor(with: traitCollection).cgColor
+            card.layer.borderColor = Theme.Color.border.resolvedColor(with: traitCollection).cgColor
         }
     }
 }

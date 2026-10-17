@@ -26,6 +26,10 @@ final class WatchlistViewController: UIViewController {
     private enum ItemID: Hashable {
         case placeholder(Int)
         case stock(Symbol)
+
+        var isPlaceholder: Bool {
+            if case .placeholder = self { true } else { false }
+        }
     }
 
     private var collectionView: UICollectionView!
@@ -42,6 +46,8 @@ final class WatchlistViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
         title = "Watchlist"
         navigationItem.largeTitleDisplayMode = .always
+        // Sistem "Edit/Done" düğmesi: `setEditing` çağırır.
+        navigationItem.leftBarButtonItem = editButtonItem
     }
 
     @available(*, unavailable)
@@ -57,6 +63,20 @@ final class WatchlistViewController: UIViewController {
         extendedLayoutIncludesOpaqueBars = true
         setUpCollectionView()
         setUpDataSource()
+        setUpReordering()
+        let addButton = UIBarButtonItem(systemItem: .add, primaryAction: UIAction { [weak self] _ in
+            // VC arama ekranını bilmez; Router'a "ekleme istendi" der.
+            self?.router.routeToSearch()
+        })
+        addButton.accessibilityLabel = "Add stock"
+        // Assembler'ın koyduğu veri kaynağı rozeti korunur, "+" yanına eklenir.
+        navigationItem.rightBarButtonItems = [addButton] + (navigationItem.rightBarButtonItems ?? [])
+    }
+
+    /// Düzenleme modu: kartların yanında sil ve sürükle düğmeleri görünür.
+    override func setEditing(_ editing: Bool, animated: Bool) {
+        super.setEditing(editing, animated: animated)
+        collectionView.isEditing = editing
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -81,28 +101,53 @@ final class WatchlistViewController: UIViewController {
     // MARK: - Kurulum
 
     private func setUpCollectionView() {
-        collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: Self.makeLayout())
+        collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: makeLayout())
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         collectionView.backgroundColor = Theme.Color.background
         collectionView.delegate = self
         view.addSubview(collectionView)
     }
 
-    /// Compositional layout: tek sütun kart listesi.
-    ///
-    /// Item (kart) → Group (bir satır) → Section (liste). Yükseklik `estimated`:
-    /// kart, içeriğine göre (Auto Layout) kendi yüksekliğini belirler.
-    private static func makeLayout() -> UICollectionViewLayout {
-        let size = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .estimated(68))
-        let item = NSCollectionLayoutItem(layoutSize: size)
-        let group = NSCollectionLayoutGroup.vertical(layoutSize: size, subitems: [item])
+    /// Compositional layout'un "liste" bölümü: kaydırarak silme ve düzenleme modu hazır gelir.
+    /// Ayırıcı çizgiler ve arka plan kapalı; görünüm kartlarda. Kartlar arası boşluk hücrenin içinde.
+    private func makeLayout() -> UICollectionViewLayout {
+        UICollectionViewCompositionalLayout { [weak self] _, environment in
+            var configuration = UICollectionLayoutListConfiguration(appearance: .plain)
+            configuration.showsSeparators = false
+            configuration.backgroundColor = .clear
+            configuration.trailingSwipeActionsConfigurationProvider = { indexPath in
+                self?.removeAction(at: indexPath)
+            }
+            let section = NSCollectionLayoutSection.list(using: configuration, layoutEnvironment: environment)
+            section.contentInsets = NSDirectionalEdgeInsets(
+                top: Theme.Spacing.xs, leading: Theme.Spacing.l, bottom: Theme.Spacing.l * 2, trailing: Theme.Spacing.l
+            )
+            return section
+        }
+    }
 
-        let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = Theme.Spacing.s + 2
-        section.contentInsets = NSDirectionalEdgeInsets(
-            top: Theme.Spacing.s, leading: Theme.Spacing.l, bottom: Theme.Spacing.l * 2, trailing: Theme.Spacing.l
-        )
-        return UICollectionViewCompositionalLayout(section: section)
+    /// Kaydırınca "Remove". Skeleton satırlarında yok.
+    private func removeAction(at indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        guard case let .stock(symbol) = dataSource.itemIdentifier(for: indexPath) else { return nil }
+        let remove = UIContextualAction(style: .destructive, title: "Remove") { [interactor] _, _, completion in
+            Task { await interactor.removeStock(request: .init(symbol: symbol)) }
+            completion(true)
+        }
+        remove.image = UIImage(systemName: "trash")
+        return UISwipeActionsConfiguration(actions: [remove])
+    }
+
+    /// Sürükleyerek sıralama: diffable yeni sırayı uygular, biz de Interactor'a bildiririz.
+    private func setUpReordering() {
+        dataSource.reorderingHandlers.canReorderItem = { id in
+            if case .stock = id { true } else { false }
+        }
+        dataSource.reorderingHandlers.didReorder = { [interactor] transaction in
+            let symbols = transaction.finalSnapshot.itemIdentifiers.compactMap { id -> Symbol? in
+                if case let .stock(symbol) = id { symbol } else { nil }
+            }
+            Task { await interactor.reorder(request: .init(symbols: symbols)) }
+        }
     }
 
     private func setUpDataSource() {
@@ -114,6 +159,8 @@ final class WatchlistViewController: UIViewController {
                 guard let row = self?.rows[symbol] else { return }
                 cell.configure(with: row)
             }
+            // Sadece düzenleme modunda görünür: soldaki sil, sağdaki sürükle tutamacı.
+            cell.accessories = id.isPlaceholder ? [] : [.delete(displayed: .whenEditing), .reorder(displayed: .whenEditing)]
         }
         dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView) { collectionView, indexPath, id in
             collectionView.dequeueConfiguredReusableCell(using: registration, for: indexPath, item: id)
@@ -147,12 +194,36 @@ extension WatchlistViewController: WatchlistDisplayLogic {
             case let .stock(row): .stock(row.id)
             }
         }
+        showEmptyMessage(viewModel.emptyMessage)
+
+        let current = dataSource.snapshot()
+        if current.itemIdentifiers == ids {
+            // Aynı liste, içerik değişmiş olabilir: hücreleri yerinde yenile.
+            var refreshed = current
+            refreshed.reconfigureItems(ids)
+            dataSource.apply(refreshed, animatingDifferences: false)
+            return
+        }
         var snapshot = NSDiffableDataSourceSnapshot<Section, ItemID>()
         snapshot.appendSections([.main])
         snapshot.appendItems(ids)
-        // Skeleton → veri geçişi yumuşak olsun (ilk açılışta animasyonsuz).
-        let hadItems = !dataSource.snapshot().itemIdentifiers.isEmpty
-        dataSource.apply(snapshot, animatingDifferences: hadItems)
+        // Skeleton → veri, ekleme/çıkarma: animasyonlu (ilk açılışta değil).
+        dataSource.apply(snapshot, animatingDifferences: !current.itemIdentifiers.isEmpty)
+    }
+
+    /// Boş liste mesajı: collection view'ın arka plan view'ı olarak.
+    private func showEmptyMessage(_ message: String?) {
+        guard let message else {
+            collectionView.backgroundView = nil
+            return
+        }
+        let label = UILabel()
+        label.text = message
+        label.numberOfLines = 0
+        label.textAlignment = .center
+        label.font = .systemFont(ofSize: 15, weight: .medium)
+        label.textColor = Theme.Color.textSecondary
+        collectionView.backgroundView = label
     }
 
     func displayQuoteUpdate(viewModel: Watchlist.Update.ViewModel) {

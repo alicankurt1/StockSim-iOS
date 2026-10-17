@@ -5,7 +5,11 @@ import Domain
 @MainActor
 protocol WatchlistRoutingLogic {
     func routeToStockDetail(symbol: Symbol)
+    func routeToSearch()
 }
+
+/// Arama ekranını kurar. Veri aktarımı yok: arama ekranı izleme listesine doğrudan yazar.
+typealias StockSearchFactory = @MainActor () -> UIViewController
 
 /// Hedef ekranı kuran fabrika: VC'yi ve veri yazılacak DataStore'unu birlikte verir.
 /// Router somut sahneyi kendisi kurmaz; composition root'tan alır (DIP).
@@ -19,10 +23,27 @@ final class WatchlistRouter: WatchlistRoutingLogic {
     /// Kaynak veri: hangi hisseler yüklü.
     let dataStore: WatchlistDataStore
     private let makeStockDetail: StockDetailFactory
+    private let makeSearch: StockSearchFactory
 
-    init(dataStore: WatchlistDataStore, makeStockDetail: @escaping StockDetailFactory) {
+    init(
+        dataStore: WatchlistDataStore,
+        makeStockDetail: @escaping StockDetailFactory,
+        makeSearch: @escaping StockSearchFactory = { UIViewController() }
+    ) {
         self.dataStore = dataStore
         self.makeStockDetail = makeStockDetail
+        self.makeSearch = makeSearch
+    }
+
+    /// Arama alttan açılan bir sayfa (sheet), kendi navigation bar'ıyla (arama çubuğu orada).
+    func routeToSearch() {
+        let navigationController = UINavigationController(rootViewController: makeSearch())
+        Theme.style(navigationController.navigationBar)
+        if let sheet = navigationController.sheetPresentationController {
+            sheet.detents = [.large()]
+            sheet.prefersGrabberVisible = true
+        }
+        viewController?.present(navigationController, animated: true)
     }
 
     /// Clean Swift'in iki adımı:

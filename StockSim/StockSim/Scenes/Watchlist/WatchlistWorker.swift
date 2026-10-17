@@ -3,7 +3,11 @@ import Domain
 /// Worker: Interactor'ın dış dünyayla (veri kaynağı, ağ, disk) konuşan yardımcısı.
 /// Interactor bu protokolü bilir; testte yerine sahtesi verilir.
 protocol WatchlistWorking: Sendable {
+    /// Kullanıcının izleme listesi (kalıcı).
     func fetchInstruments() async throws -> [Instrument]
+    func watchlistChanges() async -> AsyncStream<[Instrument]>
+    func removeFromWatchlist(_ symbol: Symbol) async
+    func reorderWatchlist(_ symbols: [Symbol]) async
     func fetchQuotes(for symbols: [Symbol]) async throws -> [Quote]
     func liveUpdates(for symbols: [Symbol]) async -> AsyncStream<MarketUpdate>
     /// Her hissenin gün içi kapanışları. Geçmişi alınamayan hisse sonuçta olmaz.
@@ -14,9 +18,22 @@ struct WatchlistWorker: WatchlistWorking {
 
     /// Simülatör mü gerçek veri mi, Worker bilmez (DIP).
     let market: any MarketDataProviding
+    let watchlist: any WatchlistStoring
 
     func fetchInstruments() async throws -> [Instrument] {
-        try await market.instruments()
+        await watchlist.current()
+    }
+
+    func watchlistChanges() async -> AsyncStream<[Instrument]> {
+        await watchlist.changes()
+    }
+
+    func removeFromWatchlist(_ symbol: Symbol) async {
+        await watchlist.remove(symbol)
+    }
+
+    func reorderWatchlist(_ symbols: [Symbol]) async {
+        await watchlist.reorder(symbols)
     }
 
     func fetchQuotes(for symbols: [Symbol]) async throws -> [Quote] {

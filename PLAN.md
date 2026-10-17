@@ -200,10 +200,10 @@ Yahoo's unofficial endpoint is fine for development and the demo; the data sourc
 **Learns:** LSP & DIP in practice, Codable edge cases, testable networking.
 
 ### Phase 9.5 — Stock search + personal watchlist (~4 h)
-- [ ] Search scene (VIP): Yahoo search endpoint for BIST tickers, debounced typing, empty / error / loading states
-- [ ] Persisted watchlist (repository pattern from Phase 8); only watchlist symbols are polled
-- [ ] Watchlist editing: add from search, swipe to delete, reorder
-- [ ] Simulator prices unknown tickers deterministically (seed from the ticker)
+- [x] Search scene (VIP): Yahoo search endpoint for BIST tickers, debounced typing, empty / error / loading states
+- [x] Persisted watchlist (repository pattern from Phase 8); only watchlist symbols are polled
+- [x] Watchlist editing: add from search, swipe to delete, reorder
+- [x] Simulator prices unknown tickers deterministically (seed from the ticker)
 
 **Learns:** debouncing with async/await, search UX states, reusing the repository pattern.
 

@@ -21,6 +21,8 @@ enum Watchlist {
         /// Ekrana hazır sonuç: sadece string ve enum. View hiçbir şey hesaplamaz.
         struct ViewModel {
             let items: [Item]
+            /// Liste boşsa gösterilecek yönlendirme; doluysa `nil`.
+            var emptyMessage: String? = nil
 
             /// Sadece veri satırları (testler ve okunabilirlik için).
             var rows: [Row] {
@@ -45,6 +47,20 @@ enum Watchlist {
 
         struct ViewModel {
             let row: Row
+        }
+    }
+
+    /// Kullanıcı bir hisseyi listeden çıkardı (kaydırarak ya da düzenleme modunda).
+    enum Remove {
+        struct Request {
+            let symbol: Symbol
+        }
+    }
+
+    /// Kullanıcı listeyi sürükleyerek yeniden sıraladı.
+    enum Reorder {
+        struct Request {
+            let symbols: [Symbol]
         }
     }
 

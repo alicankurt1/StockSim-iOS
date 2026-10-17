@@ -31,6 +31,33 @@ struct YahooParsingTests {
     }
 
     /// Tatil: mum yok ama fiyat var; uygulama çökmeden boş grafik gösterir.
+    /// Gerçek veride görülen hata: gün ortasında tek bir mum dünkü kapanışla (≈%1,3 yukarıda) geliyor.
+    @Test func isolatedSpikeIsRemoved() {
+        let closes: [Decimal] = [273.25, 273.0, 276.75, 273.25, 273.5]
+        let filtered = YahooChartResponse.Result.removingIsolatedSpikes(candles(closes))
+        #expect(filtered.map(\.close.amount) == [273.25, 273.0, 273.25, 273.5])
+    }
+
+    /// Gerçek sert düşüş ardışık mumlarda sürer: tekil değil, dokunulmaz.
+    @Test func sustainedMoveIsKept() {
+        let closes: [Decimal] = [100, 100.2, 95, 94.8, 95.1]
+        let filtered = YahooChartResponse.Result.removingIsolatedSpikes(candles(closes))
+        #expect(filtered.count == closes.count)
+    }
+
+    /// İlk ve son mum asla atılmaz (komşusu tek taraflı).
+    @Test func edgesAreKept() {
+        let closes: [Decimal] = [110, 100, 100.1, 100, 90]
+        #expect(YahooChartResponse.Result.removingIsolatedSpikes(candles(closes)).count == 5)
+    }
+
+    private func candles(_ closes: [Decimal]) -> [Candle] {
+        closes.enumerated().map { index, close in
+            Candle(date: Date(timeIntervalSince1970: Double(index) * 300),
+                   open: Money(close), high: Money(close), low: Money(close), close: Money(close))
+        }
+    }
+
     @Test func holidayHasQuoteButNoCandles() throws {
         let result = try decode(Fixture.holiday)
 
@@ -136,6 +163,21 @@ struct YahooMarketProviderTests {
         // İki ardışık hata tek bir "koptu" olayı üretir.
         #expect(received[1] == .feedInterrupted)
         #expect(received[2] == .feedRestored)
+    }
+
+    /// Sadece İstanbul hisse senetleri; ".IS" eki atılır; uzun isim yoksa kısa isim.
+    @Test func searchKeepsOnlyIstanbulEquities() async throws {
+        let client = StubHTTPClient()
+        client.enqueue("search", .json(Fixture.search))
+        let provider = YahooMarketProvider(client: client)
+
+        let results = try await provider.searchInstruments(matching: "aks")
+
+        #expect(results.map(\.symbol.rawValue) == ["AKSA", "AKSEN"])
+        #expect(results.map(\.name) == ["Aksa Akrilik Kimya Sanayii A.S.", "AKSA ENERJI"])
+        let url = try #require(client.requestedURLs.first)
+        #expect(url.path == "/v1/finance/search")
+        #expect(url.query?.contains("q=aks") == true)
     }
 
     @Test func instrumentsComeFromTheCatalog() async {

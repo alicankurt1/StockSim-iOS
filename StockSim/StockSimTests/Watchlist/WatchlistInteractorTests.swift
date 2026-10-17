@@ -25,6 +25,11 @@ private struct WorkerStub: WatchlistWorking {
         quotes.filter { symbols.contains($0.symbol) }
     }
 
+    // İzleme listesi: bu testlerde değişmiyor.
+    func watchlistChanges() async -> AsyncStream<[Instrument]> { AsyncStream { $0.finish() } }
+    func removeFromWatchlist(_ symbol: Symbol) async {}
+    func reorderWatchlist(_ symbols: [Symbol]) async {}
+
     func liveUpdates(for symbols: [Symbol]) async -> AsyncStream<MarketUpdate> {
         // Sonlu akış: test `await` ettiğinde döngü biter ve sonuçlar kontrol edilebilir.
         AsyncStream { continuation in

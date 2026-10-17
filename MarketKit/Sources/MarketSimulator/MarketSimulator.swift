@@ -6,7 +6,7 @@ import Domain
 /// Neden `actor`? Fiyatlar, aboneler ve tetikleyici durumları birden fazla yerden
 /// (fiyat döngüsü, ekranlar, debug menüsü) aynı anda okunup değiştiriliyor.
 /// Actor bu erişimleri sıraya koyar; veri yarışı (data race) olmaz.
-public actor MarketSimulator: MarketDataProviding, MarketControlling {
+public actor MarketSimulator: MarketDataProviding, MarketControlling, SymbolSearching {
 
     private struct Subscriber {
         let symbols: Set<Symbol>
@@ -27,8 +27,11 @@ public actor MarketSimulator: MarketDataProviding, MarketControlling {
     private let now: @Sendable () -> Date
 
     private var generator: SeededGenerator
+    /// Fiyatı üretilen hisseler: yapılandırmadakiler + sonradan izleme listesine eklenenler.
+    /// Sıra önemli: rastgele sayılar bu sırayla çekilir (determinizm).
+    private var active: [SimulatedInstrument]
     private var prices: [Symbol: Double]
-    private let previousCloses: [Symbol: Money]
+    private var previousCloses: [Symbol: Money]
     private var halted: Set<Symbol> = []
     private var volatilityMultiplier = 1.0
     private var spikeTicksRemaining = 0
@@ -48,6 +51,7 @@ public actor MarketSimulator: MarketDataProviding, MarketControlling {
         self.sleep = sleep
         self.now = now
         self.generator = SeededGenerator(seed: configuration.seed)
+        self.active = configuration.instruments
 
         var prices: [Symbol: Double] = [:]
         var previousCloses: [Symbol: Money] = [:]
@@ -82,7 +86,7 @@ public actor MarketSimulator: MarketDataProviding, MarketControlling {
     /// Testler döngüyü beklemek yerine bunu doğrudan çağırır.
     func tick() {
         let dt = configuration.yearsPerTick
-        for item in configuration.instruments {
+        for item in active {
             let symbol = item.instrument.symbol
             // Rastgele sayı her hisse için HER ZAMAN çekilir; böylece bir hissenin durdurulması
             // diğerlerinin fiyat yolunu değiştirmez (determinizm).
@@ -109,14 +113,34 @@ public actor MarketSimulator: MarketDataProviding, MarketControlling {
     // MARK: - MarketDataProviding
 
     public func instruments() -> [Instrument] {
-        configuration.instruments.map(\.instrument)
+        active.map(\.instrument)
+    }
+
+    /// Simülatörde arama çevrimdışı rehberden yapılır.
+    public func searchInstruments(matching query: String) -> [Instrument] {
+        BistDirectory.search(query)
+    }
+
+    /// Bilinmeyen bir hisse istenirse (izleme listesine yeni eklendi) fiyatını üretmeye başla.
+    /// Başlangıç fiyatı hisse kodundan türetilir: aynı kod her açılışta aynı fiyatla başlar.
+    private func activate(_ symbols: [Symbol]) {
+        for symbol in symbols where prices[symbol] == nil {
+            let name = BistDirectory.instruments.first { $0.symbol == symbol }?.name ?? symbol.rawValue
+            let price = 20 + Double(stableHash(symbol.rawValue) % 48_000) / 100   // 20–500 ₺
+            let item = SimulatedInstrument(symbol.rawValue, name: name, price: price)
+            active.append(item)
+            prices[symbol] = price
+            previousCloses[symbol] = PriceModel.money(price)
+        }
     }
 
     public func quotes(for symbols: [Symbol]) -> [Quote] {
-        symbols.compactMap { quote(for: $0) }
+        activate(symbols)
+        return symbols.compactMap { quote(for: $0) }
     }
 
     public func updates(for symbols: [Symbol]) -> AsyncStream<MarketUpdate> {
+        activate(symbols)
         let (stream, continuation) = AsyncStream.makeStream(of: MarketUpdate.self, bufferingPolicy: .bufferingNewest(256))
         let id = UUID()
         let subscriber = Subscriber(symbols: Set(symbols), continuation: continuation)
@@ -139,7 +163,9 @@ public actor MarketSimulator: MarketDataProviding, MarketControlling {
     }
 
     public func history(for symbol: Symbol, range: ChartRange) throws -> [Candle] {
-        guard let item = configuration.instruments.first(where: { $0.instrument.symbol == symbol }),
+        // Rehberdeki (bilinen) bir hisseyse fiyatlamaya başla; tamamen uydurma kodlar hata verir.
+        if BistDirectory.instruments.contains(where: { $0.symbol == symbol }) { activate([symbol]) }
+        guard let item = active.first(where: { $0.instrument.symbol == symbol }),
               let price = prices[symbol] else {
             throw MarketDataError.unknownSymbol(symbol)
         }
@@ -202,7 +228,7 @@ public actor MarketSimulator: MarketDataProviding, MarketControlling {
     }
 
     private func broadcastAllQuotes() {
-        for item in configuration.instruments where !halted.contains(item.instrument.symbol) {
+        for item in active where !halted.contains(item.instrument.symbol) {
             if let quote = quote(for: item.instrument.symbol) { broadcast(.quote(quote)) }
         }
     }

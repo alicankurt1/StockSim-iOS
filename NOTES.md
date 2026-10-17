@@ -180,3 +180,20 @@ Yahoo fiyatları `Double` (41.720000001). Kuruşa yuvarlayıp tam sayı üzerind
 
 **Neden tüm hisseler değil?**
 Yahoo'da "tüm BIST'i listele" yok; canlı akış poll olduğu için yüzlerce hisse dakikada yüzlerce istek demek (hız sınırı, pil). Gerçek uygulamalardaki çözüm: kullanıcı arar, izleme listesine ekler; sadece listedekiler takip edilir (Phase 9.5).
+
+## Phase 9.5 — Hisse arama + kişisel izleme listesi
+
+**Debounce (async/await ile)**
+Kullanıcı "aksa" yazarken her harfte istek atmak yerine: her harfte bekleyen eski aramayı iptal et, yenisini kısa bir beklemeyle (300 ms) başlat. Bekleme sırasında yeni harf gelirse eski görev iptal edilir ve istek hiç gitmez. Bekleme (`sleep`) dışarıdan verildiği için testte kontrol edilebilir.
+
+**Tek doğruluk kaynağı: depo değişir, ekran yayından güncellenir**
+Silme/ekleme/sıralama Interactor'da ekranı doğrudan değiştirmez; `WatchlistStore` değişikliği yayınlar, Watchlist Interactor yayını dinleyip yeniler. Arama ekranından yapılan ekleme de aynı yoldan gelir; iki ekran asla çelişmez.
+
+**Liste değişince akışa yeniden abone olmak**
+Fiyat akışı belirli hisselere abone. Liste değişince eski akış bırakılır (abonelik sağlayıcıda temizlenir) ve yeni listeyle yeniden abone olunur. Sadece yeni eklenen hissenin fiyatı ve grafiği indirilir.
+
+**Gerçek veride hatalı fiyat kaydı ("bad tick")**
+Yahoo'nun gün içi verisinde bir mum gün ortasında dünkü kapanışla geldi; tüm grafiklerde aynı saatte sivri çizgi oluştu. Sağlayıcı, iki komşusundan da %1'den fazla sapıp hemen geri dönen tekil noktaları atıyor. Temizlik veri katmanında (SRP); ekranlar temiz veri görür.
+
+**Auto Layout: boşluğu kim alır?**
+Edit modunda kart daralıp genişleyince sparkline'lar kayıyordu. Sebep: boşluğu alabilecek birden fazla aday vardı ve öncelikler belirsizdi. Dersler: (1) Stack view'a verilen hugging önceliği etkisizdir (intrinsic boyutu yok), öncelik içindeki etiketlere verilir. (2) Sağa yaslı (alignment .trailing) bir stack içeriğinden geniş olabilir; bunu engelleyen düşük öncelikli bir "dar ol" kuralı (`width == 0`, `.fittingSizeLevel`) gerekir. Sonuç: boşluk her zaman isim sütununa gider.
