@@ -19,6 +19,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Tema koyu modda tasarlandı; açık mod Phase 13'te elden geçecek.
         window.overrideUserInterfaceStyle = .dark
         window.tintColor = Theme.Color.accent
+        assembler.window = window
         window.rootViewController = assembler.makeRootViewController()
         window.makeKeyAndVisible()
         self.window = window

@@ -15,6 +15,7 @@ let package = Package(
         .library(name: "Domain", targets: ["Domain"]),
         .library(name: "MarketSimulator", targets: ["MarketSimulator"]),
         .library(name: "Persistence", targets: ["Persistence"]),
+        .library(name: "MarketData", targets: ["MarketData"]),
         .library(name: "Charts", targets: ["Charts"]),
     ],
     targets: [
@@ -22,11 +23,14 @@ let package = Package(
         .target(name: "Domain", swiftSettings: swiftSettings),
         .target(name: "MarketSimulator", dependencies: ["Domain"], swiftSettings: swiftSettings),
         .target(name: "Persistence", dependencies: ["Domain"], swiftSettings: swiftSettings),
+        // Gerçek (gecikmeli) piyasa verisi: HTTP üzerinden.
+        .target(name: "MarketData", dependencies: ["Domain"], swiftSettings: swiftSettings),
         .target(name: "Charts", dependencies: ["Domain"], swiftSettings: swiftSettings),
 
         .testTarget(name: "DomainTests", dependencies: ["Domain"], swiftSettings: swiftSettings),
         .testTarget(name: "MarketSimulatorTests", dependencies: ["MarketSimulator"], swiftSettings: swiftSettings),
         .testTarget(name: "PersistenceTests", dependencies: ["Persistence"], swiftSettings: swiftSettings),
+        .testTarget(name: "MarketDataTests", dependencies: ["MarketData"], swiftSettings: swiftSettings),
         .testTarget(name: "ChartsTests", dependencies: ["Charts"], swiftSettings: swiftSettings),
     ]
 )

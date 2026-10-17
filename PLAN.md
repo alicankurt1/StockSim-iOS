@@ -192,12 +192,20 @@ public enum ChartRange: String, CaseIterable { case day, week, month, year }  //
 
 ### Phase 9 — Real market data (~4–5 h)
 Yahoo's unofficial endpoint is fine for development and the demo; the data source is behind `MarketDataProviding`, so a licensed source can replace it before release.
-- [ ] `HTTPClient` protocol + `URLSession` implementation
-- [ ] `YahooMarketProvider` (delayed quotes + daily candles for BIST tickers)
-- [ ] Codable fixture tests (missing fields, `null` prices, holidays) — tests never hit the network
-- [ ] On-device cache; provider switch (simulated / real) in `AppAssembler`
+- [x] `HTTPClient` protocol + `URLSession` implementation
+- [x] `YahooMarketProvider` (delayed quotes + daily candles for BIST tickers)
+- [x] Codable fixture tests (missing fields, `null` prices, holidays) — tests never hit the network
+- [x] On-device cache; provider switch (simulated / real) in `AppAssembler`
 
 **Learns:** LSP & DIP in practice, Codable edge cases, testable networking.
+
+### Phase 9.5 — Stock search + personal watchlist (~4 h)
+- [ ] Search scene (VIP): Yahoo search endpoint for BIST tickers, debounced typing, empty / error / loading states
+- [ ] Persisted watchlist (repository pattern from Phase 8); only watchlist symbols are polled
+- [ ] Watchlist editing: add from search, swipe to delete, reorder
+- [ ] Simulator prices unknown tickers deterministically (seed from the ticker)
+
+**Learns:** debouncing with async/await, search UX states, reusing the repository pattern.
 
 ### Phase 10 — What-if tracker (~4 h)
 - [ ] Backward mode: symbol + date + amount → shares, today's value, P&L; buy point marked on chart
