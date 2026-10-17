@@ -228,3 +228,23 @@ Interactor durumu bilir (`isHalted`, `isFeedInterrupted`), Presenter iki durum a
 
 **Sallama hareketi nereden yakalanır?**
 Responder zincirinde kimse işlemezse olay en sonda pencereye gelir; `UIWindow` alt sınıfı (`ShakeWindow`) `motionEnded`'ı yakalar ve composition root'a haber verir.
+
+## Phase 12 — Performans
+
+**Ölç → değiştir → tekrar ölç (gerçek sayılar)**
+Yük testi: 120 hisse × saniyede 10 tick = saniyede 1.200 fiyat. Simülatör, Release derleme, 20 sn Time Profiler:
+- Önce: saniyede ~1.160 diffable `apply` (her fiyat ayrı), ana thread CPU %57,9.
+- Sonra: saniyede ~11 `apply` (her tick tek seferde ~106 satır), ana thread CPU %11,3 → ~5 kat az.
+Simülatör sayısı cihaz sayısı değildir; anlamlı olan önce/sonra oranı. Ayrıntı: `docs/PERFORMANCE.md`.
+
+**Toplu güncelleme (batching / coalescing)**
+`UpdateCoalescer` güncellemeleri biriktirir, her hissenin sadece son değerini tutar ve bir "zamanlama" anında hepsini tek seferde teslim eder. Zamanlama dışarıdan verilir (DIP): uygulamada ekran karesi (`CADisplayLink`, liste için en fazla 30 kare/sn), testte elle tetiklenen sahte. Böylece 1.200 güncellemenin tek teslime indiği UI olmadan test edilir.
+
+**Neden 30 değil ~11 apply/sn?**
+Fiyatlar her 100 ms'de 120'lik bir patlama halinde gelir; her patlama bir kareye toplanır. İki tick arasında uygulanacak yeni bir şey olmadığı için kare boş geçer. Yani toplam iş, veri hızına göre ölçeklenir; ekran yenileme hızına göre değil.
+
+**Offscreen rendering**
+`cornerRadius` + `clipsToBounds` içerikli bir katmanda (UILabel) GPU'ya ekstra bir çizim geçişi yaptırır. UILabel arka planını kendi içeriğine çizdiği için maske gerekiyordu; arka planı `layer.backgroundColor`'a verince köşe maskesiz yuvarlanır.
+
+**os_signpost ile ölçüm**
+`OSSignposter` aralıkları ("Watchlist apply", "N rows") Instruments'ta zaman çizelgesinde görünür; `xctrace export` ile XML'e alınıp sayılabilir. Ölçüm kodu üretimde neredeyse bedavadır.

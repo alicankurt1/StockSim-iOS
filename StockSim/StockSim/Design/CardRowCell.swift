@@ -75,7 +75,7 @@ final class CardRowCell: UICollectionViewListCell {
         detailLabel.isHidden = content.detail == nil
         detailLabel.text = content.detail
         detailLabel.textColor = content.detailColor
-        detailLabel.backgroundColor = content.detailColor.withAlphaComponent(0.15)
+        detailLabel.setRoundedBackground(content.detailColor.withAlphaComponent(0.15), cornerRadius: Theme.Radius.pill)
 
         isAccessibilityElement = true
         accessibilityLabel = [content.title, content.subtitle, content.value, content.detail].compactMap { $0 }.joined(separator: ", ")
@@ -122,8 +122,6 @@ final class CardRowCell: UICollectionViewListCell {
         valueLabel.font = Theme.Font.price
         valueLabel.textColor = Theme.Color.textPrimary
         detailLabel.font = Theme.Font.change
-        detailLabel.layer.cornerRadius = Theme.Radius.pill
-        detailLabel.clipsToBounds = true
 
         let titles = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
         titles.axis = .vertical

@@ -138,8 +138,6 @@ final class StockDetailViewController: UIViewController {
 
         dayChangeLabel.font = .monospacedDigitSystemFont(ofSize: 15, weight: .semibold)
         dayChangeLabel.insets = UIEdgeInsets(top: 4, left: 8, bottom: 4, right: 8)
-        dayChangeLabel.layer.cornerRadius = Theme.Radius.pill
-        dayChangeLabel.clipsToBounds = true
 
         let priceRow = UIStackView(arrangedSubviews: [priceLabel, dayChangeLabel, UIView()])
         priceRow.alignment = .center
@@ -302,7 +300,7 @@ final class StockDetailViewController: UIViewController {
         priceLabel.text = header.price
         dayChangeLabel.text = header.dayChange
         dayChangeLabel.textColor = header.dayTrend.color
-        dayChangeLabel.backgroundColor = header.dayTrend.color.withAlphaComponent(0.15)
+        dayChangeLabel.setRoundedBackground(header.dayTrend.color.withAlphaComponent(0.15), cornerRadius: Theme.Radius.pill)
     }
 
     private func chartData(_ chart: StockDetail.Chart) -> ChartData {

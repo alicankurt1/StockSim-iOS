@@ -1,4 +1,5 @@
 import UIKit
+import os
 import Domain
 
 /// Presenter'ın VC'ye verebileceği hazır sonuçlar.
@@ -39,12 +40,22 @@ final class WatchlistViewController: UIViewController {
     private var rows: [Symbol: Watchlist.Row] = [:]
 
     private let statusBanner = StatusBannerView()
+
+    /// Fiyat güncellemelerini biriktirip ekran karesi başına bir kez uygular (Phase 12).
+    /// `false`: her güncelleme ayrı uygulanır (ölçüm karşılaştırması için `-noBatching`).
+    private let batchesUpdates: Bool
+    private let frameScheduler = FrameScheduler(maximumFramesPerSecond: 30)
+    private lazy var rowCoalescer = UpdateCoalescer<Symbol, Watchlist.Row>(
+        schedule: { [frameScheduler] work in frameScheduler.schedule(work) },
+        flush: { [weak self] batch in self?.applyRowUpdates(batch.map(\.1)) }
+    )
     private var hasLoaded = false
     private var liveUpdatesTask: Task<Void, Never>?
 
-    init(interactor: WatchlistBusinessLogic, router: WatchlistRoutingLogic) {
+    init(interactor: WatchlistBusinessLogic, router: WatchlistRoutingLogic, batchesUpdates: Bool = true) {
         self.interactor = interactor
         self.router = router
+        self.batchesUpdates = batchesUpdates
         super.init(nibName: nil, bundle: nil)
         title = "Watchlist"
         navigationItem.largeTitleDisplayMode = .always
@@ -99,6 +110,8 @@ final class WatchlistViewController: UIViewController {
         // Ekran görünmüyorsa akışı kapat: pil ve CPU boşa harcanmasın.
         liveUpdatesTask?.cancel()
         liveUpdatesTask = nil
+        // Ekran karesi zamanlayıcısını bırak (gerekince yeniden kurulur).
+        frameScheduler.invalidate()
     }
 
     // MARK: - Kurulum
@@ -230,14 +243,27 @@ extension WatchlistViewController: WatchlistDisplayLogic {
     }
 
     func displayQuoteUpdate(viewModel: Watchlist.Update.ViewModel) {
-        let row = viewModel.row
-        rows[row.id] = row
+        if batchesUpdates {
+            // Aynı hissenin karede gelen birden fazla fiyatından sadece sonuncusu uygulanır.
+            rowCoalescer.submit(viewModel.row, for: viewModel.row.id)
+        } else {
+            applyRowUpdates([viewModel.row])
+        }
+    }
 
+    /// Bir grup satırı tek bir snapshot ile günceller.
+    /// Hücreyi yeniden yaratmadan aynı hücrenin içeriğini günceller (`reconfigureItems`);
+    /// `reloadItems`'tan ucuzdur: dequeue yok, sadece registration handler tekrar çalışır.
+    private func applyRowUpdates(_ updated: [Watchlist.Row]) {
+        let interval = Signposts.signposter.beginInterval("Watchlist apply", id: Signposts.signposter.makeSignpostID(), "\(updated.count) rows")
+        defer { Signposts.signposter.endInterval("Watchlist apply", interval) }
+
+        updated.forEach { rows[$0.id] = $0 }
         var snapshot = dataSource.snapshot()
-        guard snapshot.indexOfItem(.stock(row.id)) != nil else { return }
-        // Hücreyi yeniden yaratmadan aynı hücrenin içeriğini günceller (iOS 15+).
-        // `reloadItems`'tan ucuzdur: dequeue yok, sadece registration handler tekrar çalışır.
-        snapshot.reconfigureItems([.stock(row.id)])
+        // Bu arada listeden çıkarılmış hisseleri atla.
+        let ids = updated.map { ItemID.stock($0.id) }.filter { snapshot.indexOfItem($0) != nil }
+        guard !ids.isEmpty else { return }
+        snapshot.reconfigureItems(ids)
         dataSource.apply(snapshot, animatingDifferences: false)
     }
 

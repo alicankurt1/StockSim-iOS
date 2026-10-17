@@ -33,7 +33,7 @@ See [PLAN.md](PLAN.md) for architecture and phases.
 | 9.5 | Stock search + personal watchlist | ✅ Done |
 | 10 | What-if tracker | ✅ Done |
 | 11 | Edge cases in the app | ✅ Done |
-| 12 | Performance | ⏳ |
+| 12 | Performance | ✅ Done |
 | 13 | Polish & publish | ⏳ |
 | 14 | App Store release | ⏳ |
 

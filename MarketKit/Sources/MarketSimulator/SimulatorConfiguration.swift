@@ -1,3 +1,4 @@
+import Foundation
 import Domain
 
 /// Simüle edilen bir hisse ve fiyat davranışı.
@@ -38,6 +39,16 @@ public struct SimulatorConfiguration: Sendable {
         self.instruments = instruments
         self.tickInterval = tickInterval
         self.yearsPerTick = yearsPerTick
+    }
+
+    /// Yük testi: çok sayıda uydurma hisse, sık tick (varsayılan 120 hisse × 10/sn = 1.200 güncelleme/sn).
+    public static func stress(count: Int = 120, tickInterval: Duration = .milliseconds(100), seed: UInt64 = 7) -> SimulatorConfiguration {
+        let instruments = (1...count).map { index in
+            let code = String(format: "STR%03d", index)
+            let price = 20 + Double(stableHash(code) % 48_000) / 100
+            return SimulatedInstrument(code, name: "Stress test \(index)", price: price, volatility: 0.6)
+        }
+        return SimulatorConfiguration(seed: seed, instruments: instruments, tickInterval: tickInterval)
     }
 
     /// Gerçek BIST kodları (`BistCatalog`), SİMÜLE fiyatlar (gerçek veriyle ilgisi yok).
