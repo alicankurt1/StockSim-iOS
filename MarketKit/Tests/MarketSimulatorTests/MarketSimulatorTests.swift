@@ -250,4 +250,26 @@ struct MarketSimulatorTests {
     @Test func searchUsesTheOfflineDirectory() async {
         #expect(await makeSimulator().searchInstruments(matching: "aks").map(\.symbol.rawValue) == ["AKSA", "AKSEN"])
     }
+
+    // MARK: - Yük testi yapılandırması
+
+    @Test func stressConfigurationIsLargeAndFast() {
+        let configuration = SimulatorConfiguration.stress()
+        #expect(configuration.instruments.count == 120)
+        #expect(configuration.tickInterval == .milliseconds(100))
+        #expect(Set(configuration.instruments.map(\.instrument.symbol)).count == 120)
+    }
+
+    /// 120 hisselik tick, abonelere 120 fiyat yollar.
+    @Test func stressTickPublishesEverySymbol() async {
+        let configuration = SimulatorConfiguration.stress()
+        let simulator = MarketSimulator(configuration: configuration, sleep: { _ in }, now: { fixedNow })
+        let symbols = configuration.instruments.map(\.instrument.symbol)
+        var iterator = await simulator.updates(for: symbols).makeAsyncIterator()
+        _ = await next(120, from: &iterator)   // ilk değerler
+
+        await simulator.tick()
+
+        #expect(await next(120, from: &iterator).count == 120)
+    }
 }

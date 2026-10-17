@@ -221,9 +221,9 @@ Yahoo's unofficial endpoint is fine for development and the demo; the data sourc
 **Learns:** state machines, error view models.
 
 ### Phase 12 — Performance (~3–4 h)
-- [ ] Load test: 100+ symbols × 10 Hz
-- [ ] Update batching / throttling; `os_signpost`
-- [ ] Instruments: Time Profiler, Core Animation (offscreen rendering, blending)
+- [x] Load test: 100+ symbols × 10 Hz
+- [x] Update batching / throttling; `os_signpost`
+- [x] Instruments: Time Profiler, Core Animation (offscreen rendering, blending)
 
 **Learns:** measure → change → measure.
 

@@ -66,6 +66,9 @@ final class AppAssembler {
 
     /// İzleme listesi cihazda kalıcı (`-inMemoryStorage` ile UI testleri temiz başlar).
     static func makeWatchlistStore() -> WatchlistStoring {
+        if isStressTest {
+            return WatchlistStore(defaults: SimulatorConfiguration.stress().instruments.map(\.instrument))
+        }
         guard !usesInMemoryStorage, let repository = try? FileWatchlistRepository.defaultLocation() else {
             return WatchlistStore()
         }
@@ -80,10 +83,18 @@ final class AppAssembler {
     }
 
     private static var usesInMemoryStorage: Bool {
-        ProcessInfo.processInfo.arguments.contains("-inMemoryStorage")
+        ProcessInfo.processInfo.arguments.contains("-inMemoryStorage") || isStressTest
     }
 
+    // MARK: - Performans ölçümü (Phase 12)
+
+    /// `-stressTest`: 120 uydurma hisse × saniyede 10 tick. Hesap ve listeler bellekte (kalıcı veriye dokunmaz).
+    static var isStressTest: Bool { ProcessInfo.processInfo.arguments.contains("-stressTest") }
+    /// `-noBatching`: Watchlist her fiyatı ayrı uygular (önce/sonra karşılaştırması için).
+    static var batchesUpdates: Bool { !ProcessInfo.processInfo.arguments.contains("-noBatching") }
+
     private static func savedDataSource() -> MarketDataSource {
+        if isStressTest { return .simulated }
         if ProcessInfo.processInfo.arguments.contains("-realData") { return .delayed }
         return UserDefaults.standard.string(forKey: dataSourceKey).flatMap(MarketDataSource.init) ?? .simulated
     }
@@ -91,7 +102,7 @@ final class AppAssembler {
     private static func makeMarket(for source: MarketDataSource) -> (any MarketDataProviding, any SymbolSearching, MarketSimulator?) {
         switch source {
         case .simulated:
-            let simulator = MarketSimulator()
+            let simulator = MarketSimulator(configuration: isStressTest ? .stress() : .bist())
             return (simulator, simulator, simulator)
         case .delayed:
             let provider = YahooMarketProvider()
@@ -160,7 +171,7 @@ final class AppAssembler {
             makeStockDetail: { [unowned self] in self.makeStockDetail() },
             makeSearch: { [unowned self] in self.makeStockSearch() }
         )
-        let viewController = WatchlistViewController(interactor: interactor, router: router)
+        let viewController = WatchlistViewController(interactor: interactor, router: router, batchesUpdates: Self.batchesUpdates)
         viewController.navigationItem.rightBarButtonItem = makeDataSourceItem()
 
         // Geri bağlantılar weak: VC → Interactor → Presenter ⇢ VC, VC → Router ⇢ VC

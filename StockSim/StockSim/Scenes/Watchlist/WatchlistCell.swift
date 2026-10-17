@@ -73,7 +73,7 @@ final class WatchlistCell: UICollectionViewListCell {
         // İşlem durdurulduysa uyarı rengi.
         let color = row.isHalted ? Theme.Color.warning : row.trend.color
         changeLabel.textColor = color
-        changeLabel.backgroundColor = color.withAlphaComponent(0.15)
+        changeLabel.setRoundedBackground(color.withAlphaComponent(0.15), cornerRadius: Theme.Radius.pill)
         sparklineView.setValues(row.sparkline, color: color)
         sparklineView.isHidden = row.sparkline.count < 2
 
@@ -142,9 +142,7 @@ final class WatchlistCell: UICollectionViewListCell {
         monogramLabel.font = Theme.Font.monogram
         monogramLabel.textColor = Theme.Color.accent
         monogramLabel.textAlignment = .center
-        monogramLabel.backgroundColor = Theme.Color.accent.withAlphaComponent(0.15)
-        monogramLabel.layer.cornerRadius = 20
-        monogramLabel.clipsToBounds = true
+        monogramLabel.setRoundedBackground(Theme.Color.accent.withAlphaComponent(0.15), cornerRadius: 20)
 
         symbolLabel.font = Theme.Font.symbol
         symbolLabel.textColor = Theme.Color.textPrimary
@@ -154,8 +152,7 @@ final class WatchlistCell: UICollectionViewListCell {
         priceLabel.font = Theme.Font.price
         priceLabel.textColor = Theme.Color.textPrimary
         changeLabel.font = Theme.Font.change
-        changeLabel.layer.cornerRadius = Theme.Radius.pill
-        changeLabel.clipsToBounds = true
+
 
         let titles = verticalStack([symbolLabel, nameLabel], alignment: .leading)
         let values = verticalStack([priceLabel, changeLabel], alignment: .trailing)
@@ -261,6 +258,7 @@ final class WatchlistCell: UICollectionViewListCell {
         // `layer.borderColor` CGColor'dır; mod değişiminde kendiliğinden güncellenmez.
         if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
             card.layer.borderColor = Theme.Color.border.resolvedColor(with: traitCollection).cgColor
+            monogramLabel.setRoundedBackground(Theme.Color.accent.withAlphaComponent(0.15), cornerRadius: 20)
         }
     }
 }
