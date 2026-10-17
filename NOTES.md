@@ -211,3 +211,20 @@ Satıra dokununca aynı oluşturucu açılır; liste Router'ı seçilen senaryoy
 
 **Ortak hücre (DRY)**
 Portföy ve What If satırları aynı `CardRowCell`'i kullanır; ViewModel → hücre içeriği eşlemesi her sahnenin kendi küçük extension'ında. Auto Layout düzeltmesi tek yerde.
+
+## Phase 11 — Uygulama içi uç durumlar
+
+**Uç durumlar nasıl test edilir? Tetikleyiciyi ekranın değil kaynağın içine koy**
+Debug menüsü ekranlara "halt göster" demez; simülatöre `.halt(THYAO)` der. Ekranlar olayı normal fiyat akışından (`MarketUpdate.halted`) alır. Böylece test edilen şey gerçek kod yoludur. Aynı mantıkla Phase 2'de tetikleyiciler Domain sözleşmesinin (`MarketControlling`) parçası yapılmıştı; ISP sayesinde ekranlar bu protokolü görmez.
+
+**Debug menüsü neden VIP sahnesi değil?**
+Ürünün parçası değil, composition root'un simülatöre erişimiyle çalışan bir geliştirici aracı. Her şeyi VIP'e sokmak "katman sayısı" olurdu; SOLID'in amacı esneklik.
+
+**Durumu kim söyler, kim gösterir?**
+Interactor durumu bilir (`isHalted`, `isFeedInterrupted`), Presenter iki durum aynı anda olursa hangisinin gösterileceğine karar verir (durdurma öncelikli) ve al/sat'ın açık olup olmadığını söyler; VC sadece şeridi gösterir ve düğmeleri kilitler. Öncelik kuralı tablo testiyle sabit.
+
+**Tekrar kullanılabilir durum şeridi**
+`StatusBannerView`: metin verince belirir, `nil` verince kaybolur; VoiceOver'a duyurur. Watchlist ve detay aynı bileşeni kullanır.
+
+**Sallama hareketi nereden yakalanır?**
+Responder zincirinde kimse işlemezse olay en sonda pencereye gelir; `UIWindow` alt sınıfı (`ShakeWindow`) `motionEnded`'ı yakalar ve composition root'a haber verir.

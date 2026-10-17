@@ -30,6 +30,8 @@ final class WatchlistInteractor: WatchlistBusinessLogic, WatchlistDataStore {
     private(set) var quotes: [Symbol: Quote] = [:]
     /// Sparkline serileri; canlı fiyat geldikçe son değer güncellenir.
     private var sparklines: [Symbol: [Money]] = [:]
+    /// İşlemi durdurulmuş hisseler (uç durum: halt).
+    private var halted: Set<Symbol> = []
 
     init(presenter: WatchlistPresentationLogic, worker: WatchlistWorking) {
         self.presenter = presenter
@@ -85,7 +87,7 @@ final class WatchlistInteractor: WatchlistBusinessLogic, WatchlistDataStore {
         quotes = quotes.filter { kept.contains($0.key) }
         sparklines = sparklines.filter { kept.contains($0.key) }
         presenter.presentWatchlist(response: Watchlist.Load.Response(
-            instruments: instruments, quotes: quotes, sparklines: sparklines
+            instruments: instruments, quotes: quotes, sparklines: sparklines, halted: halted
         ))
     }
 
@@ -122,13 +124,33 @@ final class WatchlistInteractor: WatchlistBusinessLogic, WatchlistDataStore {
             guard let instrument = instruments.first(where: { $0.symbol == quote.symbol }) else { return }
             quotes[quote.symbol] = quote
             updateSparkline(with: quote)
-            presenter.presentQuoteUpdate(response: Watchlist.Update.Response(
-                instrument: instrument, quote: quote, sparkline: sparklines[quote.symbol] ?? []
-            ))
-        case .halted, .resumed, .feedInterrupted, .feedRestored:
-            // Phase 11'de: işlem durdu rozeti ve "veri eski" uyarısı.
-            return
+            presentRow(instrument, quote: quote)
+        case let .halted(symbol):
+            halted.insert(symbol)
+            refreshRow(symbol)
+        case let .resumed(symbol):
+            halted.remove(symbol)
+            refreshRow(symbol)
+        case .feedInterrupted:
+            presenter.presentFeedStatus(response: .init(isInterrupted: true))
+        case .feedRestored:
+            presenter.presentFeedStatus(response: .init(isInterrupted: false))
         }
+    }
+
+    /// Fiyatı değişmeyen ama durumu değişen satırı yeniden göster (durdu/devam etti).
+    private func refreshRow(_ symbol: Symbol) {
+        guard let instrument = instruments.first(where: { $0.symbol == symbol }), let quote = quotes[symbol] else { return }
+        presentRow(instrument, quote: quote)
+    }
+
+    private func presentRow(_ instrument: Instrument, quote: Quote) {
+        presenter.presentQuoteUpdate(response: Watchlist.Update.Response(
+            instrument: instrument,
+            quote: quote,
+            sparkline: sparklines[instrument.symbol] ?? [],
+            isHalted: halted.contains(instrument.symbol)
+        ))
     }
 
     /// Serinin son noktası "şu anki" fiyattır: yeni nokta eklemek yerine onu güncelliyoruz.

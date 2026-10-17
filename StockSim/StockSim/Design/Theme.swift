@@ -23,6 +23,8 @@ enum Theme {
         static let accent = UIColor.dynamic(light: UIColor(hex: 0x2563EB), dark: UIColor(hex: 0x3B82F6))
         static let up = UIColor.dynamic(light: UIColor(hex: 0x16A34A), dark: UIColor(hex: 0x22C55E))
         static let down = UIColor.dynamic(light: UIColor(hex: 0xE11D48), dark: UIColor(hex: 0xF43F5E))
+        /// Uyarı: işlem durdurma, eski veri.
+        static let warning = UIColor.dynamic(light: UIColor(hex: 0xD97706), dark: UIColor(hex: 0xF59E0B))
 
         /// Skeleton kutularının zemini ve üzerinden geçen parıltı.
         static let skeleton = UIColor.dynamic(light: UIColor(hex: 0xE3E9F3), dark: UIColor(hex: 0x1A2540))

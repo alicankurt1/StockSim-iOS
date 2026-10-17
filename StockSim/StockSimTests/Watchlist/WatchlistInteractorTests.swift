@@ -66,6 +66,12 @@ private final class PresenterSpy: WatchlistPresentationLogic {
     func presentQuoteUpdate(response: Watchlist.Update.Response) {
         quoteUpdates.append(response)
     }
+
+    private(set) var feedStatuses: [Bool] = []
+
+    func presentFeedStatus(response: Watchlist.FeedStatus.Response) {
+        feedStatuses.append(response.isInterrupted)
+    }
 }
 
 private struct SomeError: Error {}
@@ -191,5 +197,34 @@ struct WatchlistInteractorTests {
         await interactor.startLiveUpdates(request: .init())
 
         #expect(presenter.quoteUpdates.first?.sparkline == [Money(100), Money(101), Money(105)])
+    }
+
+    // MARK: - Uç durumlar
+
+    /// Durdurulan hisse satırı "halted" olarak yenilenir; devam edince normale döner.
+    @Test func haltAndResumeRefreshTheRow() async {
+        let quote = Quote(symbol: Symbol("THYAO"), price: Money(290), previousClose: Money(287), timestamp: .now)
+        let presenter = PresenterSpy()
+        let worker = WorkerStub(
+            result: .success(instruments), quotes: [quote],
+            updates: [.halted(Symbol("THYAO")), .resumed(Symbol("THYAO"))]
+        )
+        let interactor = WatchlistInteractor(presenter: presenter, worker: worker)
+        await interactor.loadWatchlist(request: .init())
+
+        await interactor.startLiveUpdates(request: .init())
+
+        #expect(presenter.quoteUpdates.map(\.isHalted) == [true, false])
+    }
+
+    @Test func feedInterruptionIsReported() async {
+        let presenter = PresenterSpy()
+        let worker = WorkerStub(result: .success(instruments), updates: [.feedInterrupted, .feedRestored])
+        let interactor = WatchlistInteractor(presenter: presenter, worker: worker)
+        await interactor.loadWatchlist(request: .init())
+
+        await interactor.startLiveUpdates(request: .init())
+
+        #expect(presenter.feedStatuses == [true, false])
     }
 }

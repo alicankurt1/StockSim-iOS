@@ -31,6 +31,8 @@ final class StockDetailInteractor: StockDetailBusinessLogic, StockDetailDataStor
     private var candles: [Candle] = []
     private var lastQuote: Quote?
     private var position: Position?
+    private var isHalted = false
+    private var isFeedInterrupted = false
 
     init(presenter: StockDetailPresentationLogic, worker: StockDetailWorking) {
         self.presenter = presenter
@@ -84,12 +86,28 @@ final class StockDetailInteractor: StockDetailBusinessLogic, StockDetailDataStor
     private func listenToMarket() async {
         guard let instrument else { return }
         for await update in await worker.liveUpdates(for: instrument.symbol) {
-            guard case let .quote(quote) = update, quote.symbol == instrument.symbol else { continue }
-            lastQuote = quote
-            updateLastCandle(with: quote)
-            presenter.presentQuoteUpdate(response: StockDetail.Update.Response(quote: quote, candles: candles, range: range))
-            // Fiyat değişince pozisyonun kâr/zararı da değişir.
-            if position != nil { presentHolding() }
+            switch update {
+            case let .quote(quote) where quote.symbol == instrument.symbol:
+                lastQuote = quote
+                updateLastCandle(with: quote)
+                presenter.presentQuoteUpdate(response: StockDetail.Update.Response(quote: quote, candles: candles, range: range))
+                // Fiyat değişince pozisyonun kâr/zararı da değişir.
+                if position != nil { presentHolding() }
+            case let .halted(symbol) where symbol == instrument.symbol:
+                isHalted = true
+                presentMarketStatus()
+            case let .resumed(symbol) where symbol == instrument.symbol:
+                isHalted = false
+                presentMarketStatus()
+            case .feedInterrupted:
+                isFeedInterrupted = true
+                presentMarketStatus()
+            case .feedRestored:
+                isFeedInterrupted = false
+                presentMarketStatus()
+            default:
+                continue
+            }
         }
     }
 
@@ -100,6 +118,10 @@ final class StockDetailInteractor: StockDetailBusinessLogic, StockDetailDataStor
             position = (current?.quantity ?? 0) > 0 ? current : nil
             presentHolding()
         }
+    }
+
+    private func presentMarketStatus() {
+        presenter.presentMarketStatus(response: .init(isHalted: isHalted, isFeedInterrupted: isFeedInterrupted))
     }
 
     private func presentHolding() {

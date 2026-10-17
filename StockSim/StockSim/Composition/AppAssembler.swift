@@ -239,6 +239,29 @@ final class AppAssembler {
         return (viewController, interactor)
     }
 
+    /// Uç durum tetikleyicileri (sallama ya da rozet menüsü). Gerçek veride yok.
+    func showMarketControls() {
+        guard let presenter = topViewController() else { return }
+        guard let simulator else {
+            let alert = UIAlertController(
+                title: "Market controls",
+                message: "Available in the simulated market. Switch the data source to Simulated to try crashes, halts and feed drops.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            presenter.present(alert, animated: true)
+            return
+        }
+        MarketControlsMenu(simulator: simulator, watchlist: watchlistStore).present(from: presenter)
+    }
+
+    /// En üstte görünen ekran (açık bir sayfa varsa o).
+    private func topViewController() -> UIViewController? {
+        var top = window?.rootViewController
+        while let presented = top?.presentedViewController { top = presented }
+        return top
+    }
+
     /// Watchlist'in sağ üstündeki rozet: kaynağı gösterir, dokununca değiştirme menüsü açılır.
     /// Bu bir uygulama ayarı (iş kuralı değil) ve kökü yeniden kurmayı gerektiriyor;
     /// o yüzden sahnenin değil composition root'un işi.
@@ -258,8 +281,14 @@ final class AppAssembler {
             attributes.font = .systemFont(ofSize: 11, weight: .bold)
             return attributes
         }
+        var children: [UIMenuElement] = [UIMenu(options: .displayInline, children: actions)]
+        if simulator != nil {
+            children.append(UIAction(title: "Market controls…", image: UIImage(systemName: "slider.horizontal.3")) { [weak self] _ in
+                self?.showMarketControls()
+            })
+        }
         let button = UIButton(configuration: configuration)
-        button.menu = UIMenu(title: "Market data", children: actions)
+        button.menu = UIMenu(title: "Market data", children: children)
         button.showsMenuAsPrimaryAction = true
         button.accessibilityLabel = "Market data source: \(dataSource.menuTitle)"
         return UIBarButtonItem(customView: button)

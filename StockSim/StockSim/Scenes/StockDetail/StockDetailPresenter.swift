@@ -4,6 +4,7 @@ import Domain
 @MainActor
 protocol StockDetailPresentationLogic {
     func presentInitial(response: StockDetail.Initial.Response)
+    func presentMarketStatus(response: StockDetail.MarketStatus.Response)
     func presentHolding(response: StockDetail.Holding.Response)
     func presentDetail(response: StockDetail.Load.Response)
     func presentQuoteUpdate(response: StockDetail.Update.Response)
@@ -26,6 +27,18 @@ final class StockDetailPresenter: StockDetailPresentationLogic {
             header: response.quote.map { makeHeader(name: response.instrument.name, quote: $0) }
                 ?? StockDetail.Header(name: response.instrument.name, price: "—", dayChange: "", dayTrend: .flat)
         ))
+    }
+
+    func presentMarketStatus(response: StockDetail.MarketStatus.Response) {
+        // İkisi birden olursa daha önemlisi: işlem durdurma.
+        let message: String? = if response.isHalted {
+            "Trading halted. Buying and selling are paused."
+        } else if response.isFeedInterrupted {
+            "Reconnecting… prices may be delayed"
+        } else {
+            nil
+        }
+        viewController?.displayMarketStatus(viewModel: .init(bannerMessage: message, isTradingEnabled: !response.isHalted))
     }
 
     func presentHolding(response: StockDetail.Holding.Response) {

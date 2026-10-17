@@ -15,7 +15,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     ) {
         guard let windowScene = scene as? UIWindowScene else { return }
 
-        let window = UIWindow(windowScene: windowScene)
+        let window = ShakeWindow(windowScene: windowScene)
+        // Salla → piyasa kontrolleri (sadece simüle piyasada).
+        window.onShake = { [weak assembler] in assembler?.showMarketControls() }
         // Tema koyu modda tasarlandı; açık mod Phase 13'te elden geçecek.
         window.overrideUserInterfaceStyle = .dark
         window.tintColor = Theme.Color.accent

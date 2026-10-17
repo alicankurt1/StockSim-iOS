@@ -67,6 +67,9 @@ private final class PresenterSpy: StockDetailPresentationLogic {
 
     private(set) var holdings: [StockDetail.Holding.Response] = []
     func presentHolding(response: StockDetail.Holding.Response) { holdings.append(response) }
+
+    private(set) var statuses: [StockDetail.MarketStatus.Response] = []
+    func presentMarketStatus(response: StockDetail.MarketStatus.Response) { statuses.append(response) }
 }
 
 @MainActor
@@ -191,5 +194,20 @@ struct StockDetailInteractorTests {
         #expect(presenter.holdings.count == 2)
         #expect(presenter.holdings.first?.position == nil)
         #expect(presenter.holdings.last?.position?.quantity == 2)
+    }
+
+    // MARK: - Uç durumlar
+
+    @Test func haltAndFeedEventsUpdateMarketStatus() async {
+        let worker = WorkerStub(updates: [
+            .halted(thyao.symbol), .feedInterrupted, .resumed(thyao.symbol), .feedRestored, .halted(Symbol("OTHER")),
+        ])
+        let (interactor, presenter) = makeInteractor(worker: worker)
+
+        await interactor.startLiveUpdates(request: .init())
+
+        // Başka hissenin durdurulması bu ekranı etkilemez.
+        #expect(presenter.statuses.map(\.isHalted) == [true, true, false, false])
+        #expect(presenter.statuses.map(\.isFeedInterrupted) == [false, true, true, false])
     }
 }
