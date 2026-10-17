@@ -29,7 +29,8 @@ See [PLAN.md](PLAN.md) for architecture and phases.
 | 6 | Candlestick + crosshair | ✅ Done |
 | 7 | Trading | ✅ Done |
 | 8 | Portfolio, history, persistence | ✅ Done |
-| 9 | Real market data | ⏳ |
+| 9 | Real market data | ✅ Done |
+| 9.5 | Stock search + personal watchlist | ⏳ |
 | 10 | What-if tracker | ⏳ |
 | 11 | Edge cases in the app | ⏳ |
 | 12 | Performance | ⏳ |

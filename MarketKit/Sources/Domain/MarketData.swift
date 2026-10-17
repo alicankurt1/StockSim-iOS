@@ -22,6 +22,8 @@ public enum MarketUpdate: Sendable, Equatable {
 
 public enum MarketDataError: Error, Equatable, Sendable {
     case unknownSymbol(Symbol)
+    /// Kaynak şu an cevap vermiyor (ağ hatası, sunucu hatası, beklenmeyen veri).
+    case unavailable(String)
 }
 
 /// Fiyat kaynağı (LSP: simülatör, gerçek veri ve test sahtesi birbirinin yerine geçebilir).

@@ -160,3 +160,23 @@ Domain sadece `PortfolioRepository` protokolünü bilir. Uygulamada `FilePortfol
 
 **Tek ekranda farklı düzenli bölümler: compositional layout**
 Hesap kartı, pozisyonlar ve geçmiş tek collection view'da; layout her bölüme kendi `NSCollectionLayoutSection`'ını (başlıklı/başlıksız) verir. Satır kümesi aynıysa `reconfigureItems`, değiştiyse animasyonlu `apply`.
+
+## Phase 9 — Gerçek piyasa verisi
+
+**LSP'nin en somut hali: kaynak değişti, ekranlar değişmedi**
+`YahooMarketProvider` simülatörle aynı `MarketDataProviding` sözleşmesini uygular. Watchlist, detay, al/sat ve portföy sahnelerinde tek satır değişmedi; sadece composition root hangi sağlayıcının bağlanacağını seçiyor. Farklar sözleşmenin içinde kalıyor: canlı akış push yerine poll, ağ kopunca `feedInterrupted`, halt bilgisi yok.
+
+**Neden Alamofire değil, `HTTPClient` protokolü?**
+Tek bir GET isteği. `URLSession` async/await ile yeterli. Protokol sayesinde testte ağa hiç çıkmayan sahte istemci veriliyor (DIP); testler hızlı, kararlı ve internetten bağımsız.
+
+**Codable uç durumları (gerçek API'de neler bozulabilir?)**
+Neredeyse her alan opsiyonel; fiyat dizilerinde `null` (işlem olmayan saat), tatilde mum yok ama fiyat var, `regularMarketPrice` eksik olabiliyor (son kapanışa düşülür), hata da aynı zarfta gelir (`chart.error`) ve 404 ile. Her durum için elle yazılmış fixture + test.
+
+**Double → Decimal**
+Yahoo fiyatları `Double` (41.720000001). Kuruşa yuvarlayıp tam sayı üzerinden `Decimal`'e çevrilir: kesin para değeri.
+
+**Paralel istek: TaskGroup**
+10 hissenin fiyatı/geçmişi aynı anda istenir; biri hata verirse diğerleri yine gelir; sonuçlar karışık sırada döndüğü için indeksle geri sıralanır. Ağ çağrısı actor dışında (`static`) yapılır ki paralel istekler actor'ü sırada bekletmesin.
+
+**Neden tüm hisseler değil?**
+Yahoo'da "tüm BIST'i listele" yok; canlı akış poll olduğu için yüzlerce hisse dakikada yüzlerce istek demek (hız sınırı, pil). Gerçek uygulamalardaki çözüm: kullanıcı arar, izleme listesine ekler; sadece listedekiler takip edilir (Phase 9.5).

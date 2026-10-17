@@ -27,13 +27,22 @@ struct WatchlistWorker: WatchlistWorking {
         await market.updates(for: symbols)
     }
 
+    /// Hisseler paralel istenir: gerçek veride her biri bir ağ isteği; sırayla 10 istek yavaş olurdu.
     func fetchIntradayCloses(for symbols: [Symbol]) async -> [Symbol: [Money]] {
-        var result: [Symbol: [Money]] = [:]
-        for symbol in symbols {
-            // Bir hissenin geçmişi gelmezse liste yine açılsın; o kartta sparkline olmaz.
-            guard let candles = try? await market.history(for: symbol, range: .day) else { continue }
-            result[symbol] = candles.map(\.close)
+        let market = market
+        return await withTaskGroup(of: (Symbol, [Money]?).self) { group in
+            for symbol in symbols {
+                group.addTask {
+                    // Bir hissenin geçmişi gelmezse liste yine açılsın; o kartta sparkline olmaz.
+                    let candles = try? await market.history(for: symbol, range: .day)
+                    return (symbol, candles?.map(\.close))
+                }
+            }
+            var result: [Symbol: [Money]] = [:]
+            for await (symbol, closes) in group {
+                if let closes { result[symbol] = closes }
+            }
+            return result
         }
-        return result
     }
 }

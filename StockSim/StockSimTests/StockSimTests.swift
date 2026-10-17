@@ -7,8 +7,10 @@ import Domain
 @MainActor
 struct AppAssemblerTests {
 
-    @Test func rootHasWatchlistAndPortfolioTabs() throws {
-        let assembler = AppAssembler(portfolioStore: PortfolioStore())
+    /// Kaynak ne olursa olsun aynı ekranlar kurulur (LSP): simülatör ya da gerçek veri.
+    @Test(arguments: [MarketDataSource.simulated, .delayed])
+    func rootHasWatchlistAndPortfolioTabs(source: MarketDataSource) throws {
+        let assembler = AppAssembler(dataSource: source, portfolioStore: PortfolioStore())
         let root = try #require(assembler.makeRootViewController() as? UITabBarController)
 
         let titles = root.viewControllers?.compactMap { ($0 as? UINavigationController)?.topViewController?.title }
