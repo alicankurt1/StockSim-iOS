@@ -16,6 +16,8 @@ enum Watchlist {
             let quotes: [Symbol: Quote]
             /// Gün içi kapanışlar (sparkline için). Eksik olabilir.
             var sparklines: [Symbol: [Money]] = [:]
+            /// İşlemi durdurulmuş hisseler.
+            var halted: Set<Symbol> = []
         }
 
         /// Ekrana hazır sonuç: sadece string ve enum. View hiçbir şey hesaplamaz.
@@ -43,6 +45,7 @@ enum Watchlist {
             let quote: Quote
             /// Son değeri canlı fiyatla güncellenmiş gün içi seri.
             var sparkline: [Money] = []
+            var isHalted = false
         }
 
         struct ViewModel {
@@ -83,5 +86,19 @@ enum Watchlist {
         let trend: PriceTrend
         /// Sparkline değerleri. Sadece sayı: nasıl çizileceği View'ın işi.
         let sparkline: [Double]
+        /// İşlem durduruldu: değişim yerine "HALTED" rozeti.
+        var isHalted = false
+    }
+
+    /// Fiyat akışının durumu (koptu / geri geldi).
+    enum FeedStatus {
+        struct Response {
+            let isInterrupted: Bool
+        }
+
+        struct ViewModel: Equatable {
+            /// `nil`: şerit gizli.
+            let message: String?
+        }
     }
 }

@@ -17,6 +17,12 @@ private final class DisplaySpy: WatchlistDisplayLogic {
         errorMessages.append(message)
     }
 
+    private(set) var feedMessages: [String?] = []
+
+    func displayFeedStatus(viewModel: Watchlist.FeedStatus.ViewModel) {
+        feedMessages.append(viewModel.message)
+    }
+
     private(set) var updatedRows: [Watchlist.Row] = []
 
     func displayQuoteUpdate(viewModel: Watchlist.Update.ViewModel) {
@@ -133,5 +139,23 @@ struct WatchlistPresenterTests {
         )
 
         #expect(row.sparkline == [99.5, 100])
+    }
+
+    /// Durdurulmuş hisse: yüzde yerine "HALTED".
+    @Test func haltedRowShowsStatusInsteadOfChange() {
+        let row = WatchlistPresenter().makeRow(instrument: thyao, quote: quote("100", previousClose: "90"), isHalted: true)
+        #expect(row.change == "HALTED")
+        #expect(row.isHalted)
+        #expect(row.price == "₺100,00")
+    }
+
+    @Test func feedStatusMessage() {
+        let (presenter, display) = makePresenter()
+
+        presenter.presentFeedStatus(response: .init(isInterrupted: true))
+        presenter.presentFeedStatus(response: .init(isInterrupted: false))
+
+        #expect(display.feedMessages.first??.contains("Reconnecting") == true)
+        #expect(display.feedMessages.last == .some(nil))
     }
 }

@@ -88,6 +88,21 @@ enum StockDetail {
         }
     }
 
+    /// Piyasa durumu: işlem durdurma ve akış kopması.
+    enum MarketStatus {
+        struct Response {
+            let isHalted: Bool
+            let isFeedInterrupted: Bool
+        }
+
+        struct ViewModel: Equatable {
+            /// Alttaki uyarı şeridi; `nil` ise gizli.
+            let bannerMessage: String?
+            /// İşlem durdurulduysa al/sat kapalı.
+            let isTradingEnabled: Bool
+        }
+    }
+
     /// Crosshair: parmağın altındaki nokta seçildi (ya da bırakıldı → `nil`).
     enum Select {
         struct Request {

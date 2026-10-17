@@ -5,6 +5,7 @@ import Charts
 @MainActor
 protocol StockDetailDisplayLogic: AnyObject {
     func displayInitial(viewModel: StockDetail.Initial.ViewModel)
+    func displayMarketStatus(viewModel: StockDetail.MarketStatus.ViewModel)
     func displayHolding(viewModel: StockDetail.Holding.ViewModel)
     func displayDetail(viewModel: StockDetail.Load.ViewModel)
     func displayQuoteUpdate(viewModel: StockDetail.Update.ViewModel)
@@ -44,6 +45,7 @@ final class StockDetailViewController: UIViewController {
     private let rangeChangeLabel = UILabel()
     private let highValueLabel = UILabel()
     private let lowValueLabel = UILabel()
+    private let statusBanner = StatusBannerView()
     private let buyButton = UIButton(type: .system)
     private let sellButton = UIButton(type: .system)
 
@@ -75,6 +77,7 @@ final class StockDetailViewController: UIViewController {
         view.backgroundColor = Theme.Color.background
         setUpLayout()
         setUpStyleControl()
+        statusBanner.install(in: view)
         // Ekran kayarak gelirken başlık dolu olsun: async yükleme beklenmeden, senkron.
         interactor.prepare()
     }
@@ -317,6 +320,12 @@ extension StockDetailViewController: StockDetailDisplayLogic {
     func displayInitial(viewModel: StockDetail.Initial.ViewModel) {
         title = viewModel.title
         if let header = viewModel.header { apply(header) }
+    }
+
+    func displayMarketStatus(viewModel: StockDetail.MarketStatus.ViewModel) {
+        statusBanner.show(viewModel.bannerMessage)
+        buyButton.isEnabled = viewModel.isTradingEnabled
+        sellButton.isEnabled = viewModel.isTradingEnabled
     }
 
     func displayHolding(viewModel: StockDetail.Holding.ViewModel) {

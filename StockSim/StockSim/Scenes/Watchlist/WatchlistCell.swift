@@ -70,7 +70,8 @@ final class WatchlistCell: UICollectionViewListCell {
         changeLabel.isHidden = row.change.isEmpty
 
         // Presenter'ın yön kararını (enum) renge burada çeviriyoruz: UIKit sadece View'da.
-        let color = row.trend.color
+        // İşlem durdurulduysa uyarı rengi.
+        let color = row.isHalted ? Theme.Color.warning : row.trend.color
         changeLabel.textColor = color
         changeLabel.backgroundColor = color.withAlphaComponent(0.15)
         sparklineView.setValues(row.sparkline, color: color)

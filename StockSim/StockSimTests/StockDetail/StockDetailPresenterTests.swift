@@ -21,6 +21,9 @@ private final class DisplaySpy: StockDetailDisplayLogic {
 
     private(set) var holdings: [StockDetail.Holding.ViewModel] = []
     func displayHolding(viewModel: StockDetail.Holding.ViewModel) { holdings.append(viewModel) }
+
+    private(set) var statuses: [StockDetail.MarketStatus.ViewModel] = []
+    func displayMarketStatus(viewModel: StockDetail.MarketStatus.ViewModel) { statuses.append(viewModel) }
 }
 
 private let thyao = Instrument(symbol: Symbol("THYAO"), name: "Türk Hava Yolları")
@@ -174,5 +177,25 @@ struct StockDetailPresenterTests {
 
         #expect(display.initials.first?.title == "THYAO")
         #expect(display.initials.first?.header?.price == "₺110,00")
+    }
+
+    /// (durduruldu, akış koptu) → (şerit var mı, al/sat açık mı). İkisi birden: durdurma öncelikli.
+    @Test(arguments: [
+        (false, false, false, true),
+        (true, false, true, false),
+        (false, true, true, true),
+        (true, true, true, false),
+    ])
+    func marketStatus(halted: Bool, interrupted: Bool, showsBanner: Bool, tradingEnabled: Bool) throws {
+        let presenter = StockDetailPresenter()
+        let display = DisplaySpy()
+        presenter.viewController = display
+
+        presenter.presentMarketStatus(response: .init(isHalted: halted, isFeedInterrupted: interrupted))
+
+        let viewModel = try #require(display.statuses.first)
+        #expect((viewModel.bannerMessage != nil) == showsBanner)
+        #expect(viewModel.isTradingEnabled == tradingEnabled)
+        if halted { #expect(viewModel.bannerMessage?.hasPrefix("Trading halted") == true) }
     }
 }

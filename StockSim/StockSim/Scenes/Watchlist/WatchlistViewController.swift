@@ -8,6 +8,7 @@ protocol WatchlistDisplayLogic: AnyObject {
     func displayWatchlist(viewModel: Watchlist.Load.ViewModel)
     func displayLoadError(message: String)
     func displayQuoteUpdate(viewModel: Watchlist.Update.ViewModel)
+    func displayFeedStatus(viewModel: Watchlist.FeedStatus.ViewModel)
 }
 
 /// View: sadece gösterir ve kullanıcı olaylarını Interactor'a iletir. Hesap yapmaz.
@@ -37,6 +38,7 @@ final class WatchlistViewController: UIViewController {
     /// Kimlikten içeriğe: hücre çizilirken güncel satır buradan okunur.
     private var rows: [Symbol: Watchlist.Row] = [:]
 
+    private let statusBanner = StatusBannerView()
     private var hasLoaded = false
     private var liveUpdatesTask: Task<Void, Never>?
 
@@ -64,6 +66,7 @@ final class WatchlistViewController: UIViewController {
         setUpCollectionView()
         setUpDataSource()
         setUpReordering()
+        statusBanner.install(in: view)
         let addButton = UIBarButtonItem(systemItem: .add, primaryAction: UIAction { [weak self] _ in
             // VC arama ekranını bilmez; Router'a "ekleme istendi" der.
             self?.router.routeToSearch()
@@ -236,6 +239,10 @@ extension WatchlistViewController: WatchlistDisplayLogic {
         // `reloadItems`'tan ucuzdur: dequeue yok, sadece registration handler tekrar çalışır.
         snapshot.reconfigureItems([.stock(row.id)])
         dataSource.apply(snapshot, animatingDifferences: false)
+    }
+
+    func displayFeedStatus(viewModel: Watchlist.FeedStatus.ViewModel) {
+        statusBanner.show(viewModel.message)
     }
 
     func displayLoadError(message: String) {

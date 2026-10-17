@@ -215,8 +215,8 @@ Yahoo's unofficial endpoint is fine for development and the demo; the data sourc
 **Learns:** reusing domain rules with a different price source.
 
 ### Phase 11 — Edge cases in the app (~3 h)
-- [ ] Debug menu (shake) for all simulator triggers
-- [ ] Halt banner + disabled trading; stale-data indicator; reconnection
+- [x] Debug menu (shake) for all simulator triggers
+- [x] Halt banner + disabled trading; stale-data indicator; reconnection
 
 **Learns:** state machines, error view models.
 

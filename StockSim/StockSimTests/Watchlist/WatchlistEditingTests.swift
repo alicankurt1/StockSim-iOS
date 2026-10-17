@@ -46,6 +46,7 @@ private final class PresenterSpy: WatchlistPresentationLogic {
     func presentWatchlist(response: Watchlist.Load.Response) { responses.append(response) }
     func presentLoadError() {}
     func presentQuoteUpdate(response: Watchlist.Update.Response) {}
+    func presentFeedStatus(response: Watchlist.FeedStatus.Response) {}
 }
 
 @MainActor

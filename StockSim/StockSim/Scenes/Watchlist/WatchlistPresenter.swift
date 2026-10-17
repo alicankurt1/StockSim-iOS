@@ -8,6 +8,7 @@ protocol WatchlistPresentationLogic {
     func presentWatchlist(response: Watchlist.Load.Response)
     func presentLoadError()
     func presentQuoteUpdate(response: Watchlist.Update.Response)
+    func presentFeedStatus(response: Watchlist.FeedStatus.Response)
 }
 
 /// Presenter: Domain verisini ekrana hazır ViewModel'e çevirir (format, renk kararı).
@@ -31,7 +32,8 @@ final class WatchlistPresenter: WatchlistPresentationLogic {
             Watchlist.Item.stock(makeRow(
                 instrument: instrument,
                 quote: response.quotes[instrument.symbol],
-                sparkline: response.sparklines[instrument.symbol] ?? []
+                sparkline: response.sparklines[instrument.symbol] ?? [],
+                isHalted: response.halted.contains(instrument.symbol)
             ))
         }
         viewController?.displayWatchlist(viewModel: Watchlist.Load.ViewModel(
@@ -45,14 +47,20 @@ final class WatchlistPresenter: WatchlistPresentationLogic {
     }
 
     func presentQuoteUpdate(response: Watchlist.Update.Response) {
-        let row = makeRow(instrument: response.instrument, quote: response.quote, sparkline: response.sparkline)
+        let row = makeRow(instrument: response.instrument, quote: response.quote, sparkline: response.sparkline, isHalted: response.isHalted)
         viewController?.displayQuoteUpdate(viewModel: Watchlist.Update.ViewModel(row: row))
     }
 
     // MARK: - Satır
 
     /// Bir hisseyi ekrana hazır satıra çevirir.
-    func makeRow(instrument: Instrument, quote: Quote?, sparkline: [Money] = []) -> Watchlist.Row {
+    func presentFeedStatus(response: Watchlist.FeedStatus.Response) {
+        viewController?.displayFeedStatus(viewModel: .init(
+            message: response.isInterrupted ? "Reconnecting… prices may be delayed" : nil
+        ))
+    }
+
+    func makeRow(instrument: Instrument, quote: Quote?, sparkline: [Money] = [], isHalted: Bool = false) -> Watchlist.Row {
         let sparklineValues = sparkline.map(PriceFormatting.chartValue)
 
         // Fiyat henüz gelmediyse yer tutucu göster.
@@ -75,9 +83,11 @@ final class WatchlistPresenter: WatchlistPresentationLogic {
             monogram: Self.monogram(for: instrument.symbol),
             name: instrument.name,
             price: PriceFormatting.price(quote.price),
-            change: PriceFormatting.changePercent(quote.changePercent),
+            // Durdurulmuş hissede yüzde yerine durum: kullanıcı neden fiyatın oynamadığını görsün.
+            change: isHalted ? "HALTED" : PriceFormatting.changePercent(quote.changePercent),
             trend: PriceTrend(changePercent: quote.changePercent),
-            sparkline: sparklineValues
+            sparkline: sparklineValues,
+            isHalted: isHalted
         )
     }
 
