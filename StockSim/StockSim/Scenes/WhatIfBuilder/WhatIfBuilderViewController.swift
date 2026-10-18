@@ -26,10 +26,13 @@ final class WhatIfBuilderViewController: UIViewController {
     private let messageLabel = UILabel()
     private let spinner = UIActivityIndicatorView(style: .medium)
     private let trackButton = UIButton(type: .system)
+    /// Sonucun altındaki uyarı; fiyat kaynağına göre composition root verir.
+    private let disclaimerText: String
 
-    init(interactor: WhatIfBuilderBusinessLogic, router: WhatIfBuilderRoutingLogic) {
+    init(interactor: WhatIfBuilderBusinessLogic, router: WhatIfBuilderRoutingLogic, disclaimer: String) {
         self.interactor = interactor
         self.router = router
+        self.disclaimerText = disclaimer
         super.init(nibName: nil, bundle: nil)
         title = "What If"
     }
@@ -137,7 +140,8 @@ final class WhatIfBuilderViewController: UIViewController {
         trackButton.addTarget(self, action: #selector(trackTapped), for: .touchUpInside)
 
         let disclaimer = UILabel()
-        disclaimer.text = "Hypothetical result. Not investment advice."
+        disclaimer.text = disclaimerText
+        disclaimer.numberOfLines = 0
         disclaimer.font = .systemFont(ofSize: 11)
         disclaimer.textColor = Theme.Color.textSecondary
         disclaimer.textAlignment = .center

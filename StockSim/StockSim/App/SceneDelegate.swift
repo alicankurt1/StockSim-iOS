@@ -25,5 +25,8 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.rootViewController = assembler.makeRootViewController()
         window.makeKeyAndVisible()
         self.window = window
+        // Simülasyon olduğu ve yatırım tavsiyesi olmadığı ilk açılışta açıkça söylensin.
+        // Pencere ekrana geldikten sonra (bir sonraki döngüde) sun.
+        DispatchQueue.main.async { [assembler] in assembler.showAboutOnFirstLaunchIfNeeded() }
     }
 }

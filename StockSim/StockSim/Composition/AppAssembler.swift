@@ -1,26 +1,41 @@
 import UIKit
 import Domain
 import MarketSimulator
-import MarketData
 import Persistence
+#if DEBUG
+// Gerçek veri sadece geliştirme derlemesinde: Release (TestFlight) derlemesinde bu modül
+// import edilmez, Yahoo kodu uygulamaya hiç girmez.
+import MarketData
+#endif
 
 /// Fiyatların nereden geldiği. Ekranlar bunu bilmez; sadece composition root seçer.
-enum MarketDataSource: String {
+enum MarketDataSource: String, CaseIterable {
     case simulated
-    /// Yahoo Finance, ~15 dk gecikmeli.
+    #if DEBUG
+    /// Yahoo Finance, ~15 dk gecikmeli (sadece geliştirme).
     case delayed
+    #endif
+
+    /// Menüde seçilebilen kaynaklar. Dağıtımda sadece simülatör.
+    static var available: [MarketDataSource] {
+        Distribution.isEnabled ? [.simulated] : allCases
+    }
 
     var badgeTitle: String {
         switch self {
         case .simulated: "SIMULATED"
+        #if DEBUG
         case .delayed: "DELAYED 15M"
+        #endif
         }
     }
 
     var menuTitle: String {
         switch self {
         case .simulated: "Simulated market"
+        #if DEBUG
         case .delayed: "Real data (delayed ~15 min)"
+        #endif
         }
     }
 }
@@ -69,10 +84,11 @@ final class AppAssembler {
         if isStressTest {
             return WatchlistStore(defaults: SimulatorConfiguration.stress().instruments.map(\.instrument))
         }
+        let defaults = Distribution.universe.featured
         guard !usesInMemoryStorage, let repository = try? FileWatchlistRepository.defaultLocation() else {
-            return WatchlistStore()
+            return WatchlistStore(defaults: defaults)
         }
-        return WatchlistStore(repository: repository)
+        return WatchlistStore(defaults: defaults, repository: repository)
     }
 
     static func makeWhatIfStore() -> WhatIfStoring {
@@ -83,8 +99,10 @@ final class AppAssembler {
         return WhatIfStore(repository: repository)
     }
 
+    /// `-distribution` de bellekte: geliştirmede kayıtlı BIST listesi kurgusal evrene karışmasın.
     private static var usesInMemoryStorage: Bool {
-        ProcessInfo.processInfo.arguments.contains("-inMemoryStorage") || isStressTest || DemoData.isEnabled
+        let arguments = ProcessInfo.processInfo.arguments
+        return arguments.contains("-inMemoryStorage") || arguments.contains("-distribution") || isStressTest || DemoData.isEnabled
     }
 
     // MARK: - Performans ölçümü (Phase 12)
@@ -95,19 +113,26 @@ final class AppAssembler {
     static var batchesUpdates: Bool { !ProcessInfo.processInfo.arguments.contains("-noBatching") }
 
     private static func savedDataSource() -> MarketDataSource {
-        if isStressTest || DemoData.isEnabled { return .simulated }
+        if isStressTest || DemoData.isEnabled || Distribution.isEnabled { return .simulated }
+        #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("-realData") { return .delayed }
+        #endif
         return UserDefaults.standard.string(forKey: dataSourceKey).flatMap(MarketDataSource.init) ?? .simulated
     }
 
     private static func makeMarket(for source: MarketDataSource) -> (any MarketDataProviding, any SymbolSearching, MarketSimulator?) {
         switch source {
         case .simulated:
-            let simulator = MarketSimulator(configuration: isStressTest ? .stress() : .bist())
+            let configuration: SimulatorConfiguration = if isStressTest { .stress() }
+                else if Distribution.isEnabled { .fictional() }
+                else { .bist() }
+            let simulator = MarketSimulator(configuration: configuration)
             return (simulator, simulator, simulator)
+        #if DEBUG
         case .delayed:
             let provider = YahooMarketProvider()
             return (provider, provider, nil)
+        #endif
         }
     }
 
@@ -186,7 +211,7 @@ final class AppAssembler {
 
     func makeStockSearch() -> UIViewController {
         let presenter = StockSearchPresenter()
-        let worker = StockSearchWorker(searcher: searcher, watchlist: watchlistStore)
+        let worker = StockSearchWorker(searcher: searcher, watchlist: watchlistStore, directory: Distribution.universe.directory)
         let interactor = StockSearchInteractor(presenter: presenter, worker: worker)
         let router = StockSearchRouter()
         let viewController = StockSearchViewController(interactor: interactor, router: router)
@@ -235,7 +260,7 @@ final class AppAssembler {
         let worker = WhatIfBuilderWorker(market: market, watchlist: watchlistStore, store: whatIfStore)
         let interactor = WhatIfBuilderInteractor(presenter: presenter, worker: worker)
         let router = WhatIfBuilderRouter()
-        let viewController = WhatIfBuilderViewController(interactor: interactor, router: router)
+        let viewController = WhatIfBuilderViewController(interactor: interactor, router: router, disclaimer: whatIfDisclaimer)
 
         presenter.viewController = viewController
         router.viewController = viewController
@@ -252,6 +277,40 @@ final class AppAssembler {
         presenter.viewController = viewController
         router.viewController = viewController
         return (viewController, interactor)
+    }
+
+    /// What If sonucunun altındaki uyarı: fiyatlar simüle ise bunu açıkça söyler.
+    private var whatIfDisclaimer: String {
+        dataSource == .simulated
+            ? "Simulated prices: a hypothetical result, not real market data. Not investment advice."
+            : "Hypothetical result. Not investment advice."
+    }
+
+    // MARK: - Hakkında
+
+    private static let hasSeenAboutKey = "hasSeenAbout"
+
+    /// "Hakkında" ekranı: eğitim amaçlı simülasyon, yatırım tavsiyesi değil, veri toplanmaz.
+    /// Statik bir ekran; iş kuralı olmadığı için VIP'e gerek yok (KISS).
+    func showAbout(isFirstLaunch: Bool = false) {
+        guard let presenter = topViewController() else { return }
+        let content = AboutContent.make(
+            version: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "–",
+            build: Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "–",
+            isDistribution: Distribution.isEnabled
+        )
+        let about = AboutViewController(content: content, isFirstLaunch: isFirstLaunch, repositoryURL: Distribution.repositoryURL)
+        let navigationController = UINavigationController(rootViewController: about)
+        Theme.style(navigationController.navigationBar)
+        navigationController.isModalInPresentation = isFirstLaunch   // ilk açılışta "Got it" ile kapansın
+        presenter.present(navigationController, animated: true)
+    }
+
+    /// İlk açılışta bir kez göster (testlerde, demo ve yük testinde değil).
+    func showAboutOnFirstLaunchIfNeeded() {
+        guard !Self.usesInMemoryStorage, !UserDefaults.standard.bool(forKey: Self.hasSeenAboutKey) else { return }
+        UserDefaults.standard.set(true, forKey: Self.hasSeenAboutKey)
+        showAbout(isFirstLaunch: true)
     }
 
     /// Uç durum tetikleyicileri (sallama ya da rozet menüsü). Gerçek veride yok.
@@ -281,7 +340,7 @@ final class AppAssembler {
     /// Bu bir uygulama ayarı (iş kuralı değil) ve kökü yeniden kurmayı gerektiriyor;
     /// o yüzden sahnenin değil composition root'un işi.
     private func makeDataSourceItem() -> UIBarButtonItem {
-        let actions = [MarketDataSource.simulated, .delayed].map { source in
+        let actions = MarketDataSource.available.map { source in
             UIAction(title: source.menuTitle, state: source == dataSource ? .on : .off) { [weak self] _ in
                 self?.switchDataSource(to: source)
             }
@@ -296,14 +355,18 @@ final class AppAssembler {
             attributes.font = .systemFont(ofSize: 11, weight: .bold)
             return attributes
         }
-        var children: [UIMenuElement] = [UIMenu(options: .displayInline, children: actions)]
+        // Tek kaynak varsa (dağıtım) seçim gösterilmez.
+        var children: [UIMenuElement] = actions.count > 1 ? [UIMenu(options: .displayInline, children: actions)] : []
         if simulator != nil {
             children.append(UIAction(title: "Market controls…", image: UIImage(systemName: "slider.horizontal.3")) { [weak self] _ in
                 self?.showMarketControls()
             })
         }
+        children.append(UIAction(title: "About StockSim", image: UIImage(systemName: "info.circle")) { [weak self] _ in
+            self?.showAbout()
+        })
         let button = UIButton(configuration: configuration)
-        button.menu = UIMenu(title: "Market data", children: children)
+        button.menu = UIMenu(title: Distribution.isEnabled ? "Simulated market · fictional companies" : "Market data", children: children)
         button.showsMenuAsPrimaryAction = true
         button.accessibilityLabel = "Market data source: \(dataSource.menuTitle)"
         return UIBarButtonItem(customView: button)

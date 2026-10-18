@@ -116,16 +116,16 @@ public actor MarketSimulator: MarketDataProviding, MarketControlling, SymbolSear
         active.map(\.instrument)
     }
 
-    /// Simülatörde arama çevrimdışı rehberden yapılır.
+    /// Simülatörde arama çevrimdışı rehberden (`configuration.directory`) yapılır.
     public func searchInstruments(matching query: String) -> [Instrument] {
-        BistDirectory.search(query)
+        BistDirectory.search(query, in: configuration.directory)
     }
 
     /// Bilinmeyen bir hisse istenirse (izleme listesine yeni eklendi) fiyatını üretmeye başla.
     /// Başlangıç fiyatı hisse kodundan türetilir: aynı kod her açılışta aynı fiyatla başlar.
     private func activate(_ symbols: [Symbol]) {
         for symbol in symbols where prices[symbol] == nil {
-            let name = BistDirectory.instruments.first { $0.symbol == symbol }?.name ?? symbol.rawValue
+            let name = configuration.directory.first { $0.symbol == symbol }?.name ?? symbol.rawValue
             let price = 20 + Double(stableHash(symbol.rawValue) % 48_000) / 100   // 20–500 ₺
             let item = SimulatedInstrument(symbol.rawValue, name: name, price: price)
             active.append(item)
@@ -164,7 +164,7 @@ public actor MarketSimulator: MarketDataProviding, MarketControlling, SymbolSear
 
     public func history(for symbol: Symbol, range: ChartRange) throws -> [Candle] {
         // Rehberdeki (bilinen) bir hisseyse fiyatlamaya başla; tamamen uydurma kodlar hata verir.
-        if BistDirectory.instruments.contains(where: { $0.symbol == symbol }) { activate([symbol]) }
+        if configuration.directory.contains(where: { $0.symbol == symbol }) { activate([symbol]) }
         guard let item = active.first(where: { $0.instrument.symbol == symbol }),
               let price = prices[symbol] else {
             throw MarketDataError.unknownSymbol(symbol)

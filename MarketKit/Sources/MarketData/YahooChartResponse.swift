@@ -1,3 +1,5 @@
+// Sadece Debug derlemesi (Package.swift → REAL_DATA).
+#if REAL_DATA
 import Foundation
 import Domain
 
@@ -125,3 +127,4 @@ enum YahooMoney {
         Money(Decimal(Int64((value * 100).rounded())) / 100)
     }
 }
+#endif
