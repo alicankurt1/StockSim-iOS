@@ -286,3 +286,18 @@ Privacy manifest (`PrivacyInfo.xcprivacy`: takip yok, toplanan veri yok, `UserDe
 
 **Mülakat sorusu: Bir kodun Release'e girmediğini nasıl garanti edersin? `#if DEBUG` neden yetmeyebilir?**
 `#if DEBUG` sadece o dosyadaki kodu derlemeden çıkarır. Kodu çağıran yeri kapatırsın ama kodun kendisi başka bir modüldeyse (paket, framework) o modül yine derlenir ve link'lenir. Swift tip metadata'sı ve protocol conformance'lar dead strip ile silinmez; URL'ler ve string'ler binary'de kalır. Garanti için: (1) koşulu kodun yaşadığı modüle koy (SPM: `.define(..., .when(configuration: .debug))`) ya da modülü Release'de hiç link'leme, (2) iddiayı ölç: Release binary'sinde `strings` / `nm` ile ara (bizde 12 → 0 "yahoo"). İsteğe bağlı: CI'da bu kontrolü otomatik yapan bir adım.
+
+## Phase 14.1 — Ekran görüntüleri ve yakalanan hatalar
+
+TestFlight yüklemesi geliştirici hesabı sözleşmesi aktifleşene kadar ertelendi. Bu arada dağıtım derlemesinin (`-distribution -demoData`) tüm ekranları, demo GIF ve LinkedIn / Medium görselleri çekildi (`docs/media/social/`).
+
+**`[weak self]` her zaman doğru değil**
+"Crash a stock…" ve "Halt / resume…" Phase 11'den beri hiçbir şey yapmıyordu. `MarketControlsMenu` bir class; `MarketControlsMenu(...).present(from:)` satırından sonra onu tutan kimse kalmıyor, nesne siliniyor. Alert butonu `[weak self]` ile yakaladığı için basıldığında `self` artık `nil` → sessizce `return`. Çözüm: strong yakalamak. Döngü yok, çünkü alert menüyü (buton closure'ı üzerinden) tutuyor ama menü alert'i tutmuyor; alert kapanınca ikisi de serbest kalıyor.
+Ders: `weak` refleks değil, sahiplik sorusu: "Bu closure çalıştığında nesneyi başka kim tutuyor?" Cevap "kimse" ise weak bir hatadır.
+
+**Yüzen banner içeriği kapatıyordu**
+Detay ekranında "Trading halted" şeridi ekranın altına sabitlenmişti; önce devre dışı butonların, sonra High/Low değerlerinin üstüne bindi. Çözüm: şeridi içerik `UIStackView`'una koymak. `isHidden` olan görünüm stack'te yer kaplamaz; görününce butonların üstünde kendi yerini açar. Listede (Watchlist) yüzen kalmaya devam ediyor; orada içerik kaydırılabilir ve tek satır kapanması sorun değil.
+
+**Dağıtımda gerçek isim sızıntısı**
+Arama kutusunun placeholder'ı "e.g. AKSA" diyordu (gerçek kod). Ekran görüntüsü çekerken yakalandı; metinler genel yapıldı. Kurgusal evren sadece veride değil, arayüz metinlerinde de tutarlı olmalı.
+

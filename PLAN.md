@@ -240,7 +240,8 @@ Decision: distribute through a **TestFlight public link**, not the App Store. Th
 - [x] Fictional companies in the distribution build, clear "SIMULATED" labeling; What If labeled as a simulation
 - [x] In-app "About" screen: educational simulation, not investment advice, no data collected, licenses
 - [x] Privacy policy page (no data collected) for App Store Connect
-- [ ] Archive, upload, beta app review, public link (steps in `docs/TESTFLIGHT.md`)
+- [ ] Archive, upload, beta app review, public link (steps in `docs/TESTFLIGHT.md`) — postponed until the developer account agreement is active
+- [x] Screenshots, demo GIF and social images of the distribution build (`docs/media/`, `docs/media/social/`)
 
 **Total:** ~50–60 h. Demo clips are collected under `docs/media/` at the end of each visual phase.
 

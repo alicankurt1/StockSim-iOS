@@ -307,7 +307,9 @@ final class AppAssembler {
     }
 
     /// İlk açılışta bir kez göster (testlerde, demo ve yük testinde değil).
+    /// `-showWelcome`: ekran görüntüsü için her açılışta göster.
     func showAboutOnFirstLaunchIfNeeded() {
+        if ProcessInfo.processInfo.arguments.contains("-showWelcome") { return showAbout(isFirstLaunch: true) }
         guard !Self.usesInMemoryStorage, !UserDefaults.standard.bool(forKey: Self.hasSeenAboutKey) else { return }
         UserDefaults.standard.set(true, forKey: Self.hasSeenAboutKey)
         showAbout(isFirstLaunch: true)

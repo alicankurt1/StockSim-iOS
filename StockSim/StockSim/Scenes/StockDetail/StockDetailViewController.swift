@@ -77,7 +77,6 @@ final class StockDetailViewController: UIViewController {
         view.backgroundColor = Theme.Color.background
         setUpLayout()
         setUpStyleControl()
-        statusBanner.install(in: view)
         // Ekran kayarak gelirken başlık dolu olsun: async yükleme beklenmeden, senkron.
         interactor.prepare()
     }
@@ -147,7 +146,9 @@ final class StockDetailViewController: UIViewController {
         header.axis = .vertical
         header.spacing = Theme.Spacing.xs
 
-        let content = UIStackView(arrangedSubviews: [header, makeChartCard(), makePositionCard(), makeStatsRow(), makeTradeButtons()])
+        // Durum şeridi burada yüzen bir katman değil, akışın parçası: gizliyken yer kaplamaz,
+        // görünürken butonların hemen üstünde kendi yerini açar (hiçbir değeri kapatmaz).
+        let content = UIStackView(arrangedSubviews: [header, makeChartCard(), makePositionCard(), makeStatsRow(), statusBanner, makeTradeButtons()])
         content.axis = .vertical
         content.spacing = Theme.Spacing.l
         content.translatesAutoresizingMaskIntoConstraints = false

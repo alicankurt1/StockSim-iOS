@@ -25,15 +25,19 @@ final class MarketControlsMenu {
             preferredStyle: .actionSheet
         )
         sheet.addAction(action("Crash market −10%") { await $0.trigger(.crash(nil, percent: 10)) })
-        sheet.addAction(UIAlertAction(title: "Crash a stock −15%…", style: .default) { [weak self, weak presenter] _ in
-            guard let self, let presenter else { return }
+        sheet.addAction(UIAlertAction(title: "Crash a stock −15%…", style: .default) { [self, weak presenter] _ in
+            // self strong: menüyü başka kimse tutmuyor; weak olsaydı burada nil olurdu.
+            // Döngü yok: alert menüyü tutar, menü alert'i tutmaz.
+            guard let presenter else { return }
             self.chooseStock(title: "Crash which stock?", from: presenter) { simulator, symbol in
                 await simulator.trigger(.crash(symbol, percent: 15))
             }
         })
         sheet.addAction(action("Volatility spike ×6 (30 s)") { await $0.trigger(.volatilitySpike(multiplier: 6, duration: .seconds(30))) })
-        sheet.addAction(UIAlertAction(title: "Halt / resume a stock…", style: .default) { [weak self, weak presenter] _ in
-            guard let self, let presenter else { return }
+        sheet.addAction(UIAlertAction(title: "Halt / resume a stock…", style: .default) { [self, weak presenter] _ in
+            // self strong: menüyü başka kimse tutmuyor; weak olsaydı burada nil olurdu.
+            // Döngü yok: alert menüyü tutar, menü alert'i tutmaz.
+            guard let presenter else { return }
             self.chooseStock(title: "Halt or resume", from: presenter, toggleHalt: true) { simulator, symbol in
                 let halted = await simulator.isHalted(symbol)
                 await simulator.trigger(halted ? .resume(symbol) : .halt(symbol))

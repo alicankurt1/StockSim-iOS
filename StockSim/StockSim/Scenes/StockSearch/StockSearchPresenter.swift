@@ -18,7 +18,7 @@ final class StockSearchPresenter: StockSearchPresentationLogic {
             viewModel = .init(
                 sectionTitle: suggestions.isEmpty ? nil : "Popular",
                 rows: rows(suggestions, watchlist: response.watchlist),
-                message: suggestions.isEmpty ? "Search Borsa Istanbul stocks by code or name." : nil,
+                message: suggestions.isEmpty ? "Search stocks by code or name." : nil,
                 isLoading: false
             )
         case .loading:

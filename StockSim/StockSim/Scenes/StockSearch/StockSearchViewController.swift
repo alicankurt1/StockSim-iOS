@@ -53,7 +53,7 @@ final class StockSearchViewController: UIViewController {
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.hidesNavigationBarDuringPresentation = false
-        searchController.searchBar.placeholder = "Code or company, e.g. AKSA"
+        searchController.searchBar.placeholder = "Search by code or company"
         searchController.searchBar.autocapitalizationType = .allCharacters
         searchController.searchBar.autocorrectionType = .no
         navigationItem.searchController = searchController
