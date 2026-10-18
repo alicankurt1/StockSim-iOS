@@ -1,3 +1,5 @@
+// Sadece Debug derlemesi (Package.swift → REAL_DATA).
+#if REAL_DATA
 import Foundation
 @testable import MarketData
 
@@ -106,3 +108,4 @@ final class StubHTTPClient: HTTPClient, @unchecked Sendable {
         }
     }
 }
+#endif

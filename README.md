@@ -2,7 +2,7 @@
 
 A paper-trading stock app for iOS, built with **UIKit** and **Clean Swift (VIP)** — no third-party dependencies.
 
-> **Disclaimer:** Educational project. No real money is involved. Prices are simulated, or delayed real data in developer builds. Nothing here is investment advice.
+> **Disclaimer:** Educational project. No real money is involved. Prices are simulated, or delayed real data in developer builds. The distributed (TestFlight) build uses fictional companies only. Nothing here is investment advice.
 
 <p align="center">
   <img src="docs/media/demo.gif" width="300" alt="Live watchlist, stock detail and crosshair">
@@ -27,6 +27,7 @@ Screenshots use the simulated market with demo data (`-demoData`).
 - **What If** — "what if I had invested ₺100,000 on this date?" scenarios, tracked over time and editable
 - **Market simulator** — deterministic geometric Brownian motion with edge-case triggers: crash, volatility spike, trading halt, feed drop (shake the device to open market controls)
 - **Real data (developer builds)** — delayed BIST data behind the same protocol as the simulator
+- **Distribution build** — TestFlight public beta: simulator only, fictional companies, no network, no data collected ([details](docs/TESTFLIGHT.md), [privacy](PRIVACY.md))
 
 ## Architecture
 
@@ -82,6 +83,7 @@ Open `StockSim/StockSim.xcodeproj` and run. Useful launch arguments:
 | `-realData` | Start with delayed real data |
 | `-inMemoryStorage` | Do not read or write saved data |
 | `-demoData` | Seeded demo account and scenarios (in memory), used for screenshots |
+| `-distribution` | Behave like the TestFlight build: fictional companies, simulator only (in memory) |
 
 ## Progress
 
@@ -102,7 +104,7 @@ Open `StockSim/StockSim.xcodeproj` and run. Useful launch arguments:
 | 11 | Edge cases in the app | ✅ Done |
 | 12 | Performance | ✅ Done |
 | 13 | Polish & publish | ✅ Done |
-| 14 | TestFlight public beta | ⏳ |
+| 14 | TestFlight public beta | 🚧 Build ready, upload pending |
 
 See [PLAN.md](PLAN.md) for the full plan and [NOTES.md](NOTES.md) for learning notes (Turkish).
 

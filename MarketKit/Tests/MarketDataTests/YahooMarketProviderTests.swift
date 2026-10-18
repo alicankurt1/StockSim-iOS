@@ -1,3 +1,5 @@
+// Sadece Debug derlemesi (Package.swift → REAL_DATA).
+#if REAL_DATA
 import Foundation
 import Testing
 import Domain
@@ -192,3 +194,4 @@ private final class MutableClock: @unchecked Sendable {
     var now: Date { lock.withLock { current } }
     func advance(by seconds: TimeInterval) { lock.withLock { current += seconds } }
 }
+#endif

@@ -1,3 +1,5 @@
+// Sadece Debug derlemesi (Package.swift → REAL_DATA).
+#if REAL_DATA
 import Foundation
 import Domain
 
@@ -179,3 +181,4 @@ public actor YahooMarketProvider: MarketDataProviding, SymbolSearching {
         return result
     }
 }
+#endif

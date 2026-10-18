@@ -13,7 +13,7 @@ private func makeSimulator(seed: UInt64 = 42, sleep: @escaping @Sendable (Durati
         configuration: SimulatorConfiguration(seed: seed, instruments: [
             SimulatedInstrument("THYAO", name: "Türk Hava Yolları", price: 100),
             SimulatedInstrument("ASELS", name: "Aselsan", price: 50),
-        ]),
+        ], directory: BistDirectory.instruments),
         sleep: sleep,
         now: { fixedNow }
     )
@@ -249,6 +249,30 @@ struct MarketSimulatorTests {
 
     @Test func searchUsesTheOfflineDirectory() async {
         #expect(await makeSimulator().searchInstruments(matching: "aks").map(\.symbol.rawValue) == ["AKSA", "AKSEN"])
+    }
+
+    // MARK: - Kurgusal evren (dağıtım derlemesi)
+
+    /// Dağıtımda gerçek şirket kodu olmamalı; arama da sadece kurgusal rehberde.
+    @Test func fictionalConfigurationHasNoRealTickers() async {
+        let configuration = SimulatorConfiguration.fictional()
+        let real = Set(BistDirectory.instruments.map(\.symbol))
+
+        #expect(configuration.instruments.count == FictionalCatalog.instruments.count)
+        #expect(configuration.directory.allSatisfy { !real.contains($0.symbol) })
+        #expect(Set(configuration.directory.map(\.symbol)).count == configuration.directory.count)
+
+        let simulator = MarketSimulator(configuration: configuration, sleep: { _ in }, now: { fixedNow })
+        #expect(await simulator.searchInstruments(matching: "aks").isEmpty)
+        #expect(await simulator.searchInstruments(matching: "kalkan").map(\.symbol.rawValue) == ["KLKSV"])
+    }
+
+    /// Kurgusal ve BIST listeleri aynı fiyat davranışını sırayla alır (ekranlar benzer görünsün).
+    @Test func fictionalAndBistShareBehaviour() {
+        let bist = SimulatorConfiguration.bist().instruments.map(\.initialPrice)
+        let fictional = SimulatorConfiguration.fictional().instruments.map(\.initialPrice)
+        #expect(bist == fictional)
+        #expect(bist.first == 287.50)
     }
 
     // MARK: - Yük testi yapılandırması

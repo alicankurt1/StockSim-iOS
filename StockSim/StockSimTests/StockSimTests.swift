@@ -8,7 +8,7 @@ import Domain
 struct AppAssemblerTests {
 
     /// Kaynak ne olursa olsun aynı ekranlar kurulur (LSP): simülatör ya da gerçek veri.
-    @Test(arguments: [MarketDataSource.simulated, .delayed])
+    @Test(arguments: MarketDataSource.allCases)
     func rootHasWatchlistAndPortfolioTabs(source: MarketDataSource) throws {
         let assembler = AppAssembler(
             dataSource: source, portfolioStore: PortfolioStore(), watchlistStore: WatchlistStore(), whatIfStore: WhatIfStore()

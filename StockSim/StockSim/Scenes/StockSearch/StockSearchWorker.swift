@@ -12,6 +12,8 @@ struct StockSearchWorker: StockSearchWorking {
     /// Simülatörde çevrimdışı rehber, gerçek veride Yahoo araması (ikisi de aynı protokol).
     let searcher: any SymbolSearching
     let watchlist: any WatchlistStoring
+    /// Öneri listesi: geliştirmede BIST rehberi, dağıtımda kurgusal şirketler.
+    let directory: [Instrument]
 
     func search(_ query: String) async throws -> [Instrument] {
         try await searcher.searchInstruments(matching: query)
@@ -20,7 +22,7 @@ struct StockSearchWorker: StockSearchWorking {
     /// Arama kutusu boşken gösterilen öneriler: listede olmayan rehber hisseleri.
     func suggestions() async -> [Instrument] {
         let current = Set(await watchlist.current().map(\.symbol))
-        return BistDirectory.instruments.filter { !current.contains($0.symbol) }
+        return directory.filter { !current.contains($0.symbol) }
     }
 
     func watchlistSymbols() async -> Set<Symbol> {

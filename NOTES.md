@@ -267,3 +267,22 @@ Dynamic Type: tema fontları `UIFontMetrics` ile ölçeklenir; sabit kutulu roze
 
 **Lisans ve yayın kararı**
 MIT lisansı. Dağıtım TestFlight public link ile; gerçek veri (resmî olmayan uç nokta, BIST veri lisansı) dağıtım derlemesinde kapalı olacak.
+
+## Phase 14 — TestFlight dağıtım derlemesi
+
+**"Çağrılmıyor" ile "derlemede yok" aynı şey değil**
+İlk denemede uygulamadaki `#if DEBUG` ile Yahoo kodunu çağrılmaz yaptım; ama Release binary'sinde `strings` ile bakınca hâlâ 12 "yahoo" vardı. Sebep: paket modülü link'leniyordu, Swift tip metadata'sı da ölü kod temizliğinde (dead strip) silinmiyor. Çözüm paket seviyesinde: `Package.swift`'te `.define("REAL_DATA", .when(configuration: .debug))`. Release'de `MarketData` boş bir modül; binary'de 0 Yahoo izi.
+Ders: İddiayı ölç. "Kapalı" demek yetmez, binary'ye bak.
+
+**Tek kod tabanı, iki evren**
+`MarketUniverse` (öne çıkan hisseler + aranabilir rehber) Domain'de; composition root seçer: geliştirmede BIST, dağıtımda `FictionalCatalog`. Simülatör rehberi yapılandırmadan alır, artık `BistDirectory`'yi doğrudan bilmiyor (DIP). Demo verisi kodla değil sırayla hisse seçer; iki evrende de çalışır. Fiyat davranışı aynı sırayla paylaşılır, ekranlar aynı görünür.
+
+**Her ekran VIP olmak zorunda değil**
+"Hakkında" ekranında iş kuralı yok: içerik saf bir `AboutContent` modeli (test edilebilir), ekran sadece onu çizer. Beş VIP dosyası burada katman sayısını artırır, esneklik getirmez (KISS).
+
+**App Store Connect için gerekenler**
+Privacy manifest (`PrivacyInfo.xcprivacy`: takip yok, toplanan veri yok, `UserDefaults` sebebi `CA92.1`), `ITSAppUsesNonExemptEncryption = NO` (her yüklemede şifreleme sorusu çıkmaz), gizlilik politikası sayfası, sadece iPhone + dikey (incelemede iPad düzeni sorun çıkarmasın).
+
+
+**Mülakat sorusu: Bir kodun Release'e girmediğini nasıl garanti edersin? `#if DEBUG` neden yetmeyebilir?**
+`#if DEBUG` sadece o dosyadaki kodu derlemeden çıkarır. Kodu çağıran yeri kapatırsın ama kodun kendisi başka bir modüldeyse (paket, framework) o modül yine derlenir ve link'lenir. Swift tip metadata'sı ve protocol conformance'lar dead strip ile silinmez; URL'ler ve string'ler binary'de kalır. Garanti için: (1) koşulu kodun yaşadığı modüle koy (SPM: `.define(..., .when(configuration: .debug))`) ya da modülü Release'de hiç link'leme, (2) iddiayı ölç: Release binary'sinde `strings` / `nm` ile ara (bizde 12 → 0 "yahoo"). İsteğe bağlı: CI'da bu kontrolü otomatik yapan bir adım.

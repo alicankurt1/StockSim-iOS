@@ -1,3 +1,5 @@
+// Sadece Debug derlemesi (Package.swift → REAL_DATA).
+#if REAL_DATA
 import Foundation
 
 /// Ağ isteği atan şey. Sağlayıcı sadece bu protokolü bilir (DIP):
@@ -25,3 +27,4 @@ public struct URLSessionHTTPClient: HTTPClient {
         return (data, http)
     }
 }
+#endif
