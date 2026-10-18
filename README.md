@@ -5,22 +5,32 @@ A paper-trading stock app for iOS, built with **UIKit** and **Clean Swift (VIP)*
 > **Disclaimer:** Educational project. No real money is involved. Prices are simulated, or delayed real data in developer builds. The distributed (TestFlight) build uses fictional companies only. Nothing here is investment advice.
 
 <p align="center">
-  <img src="docs/media/demo.gif" width="300" alt="Live watchlist, stock detail and crosshair">
+  <img src="docs/media/demo.gif" width="300" alt="Live watchlist, stock detail with crosshair, candlesticks, portfolio and What If">
 </p>
 
-| Watchlist | Detail | Candles | Trade |
+| Watchlist | Detail | Candles + crosshair | Trade |
 |---|---|---|---|
-| <img src="docs/media/watchlist.png" width="190" alt="Watchlist"> | <img src="docs/media/detail-line.png" width="190" alt="Stock detail with line chart"> | <img src="docs/media/detail-candles.png" width="190" alt="Candlestick chart"> | <img src="docs/media/trade.png" width="190" alt="Buy sheet"> |
+| <img src="docs/media/watchlist.png" width="190" alt="Watchlist"> | <img src="docs/media/detail-line.png" width="190" alt="Stock detail with line chart"> | <img src="docs/media/detail-candles.png" width="190" alt="Candlestick chart with crosshair"> | <img src="docs/media/trade.png" width="190" alt="Buy sheet"> |
 
-| Portfolio | What If | Scenario |
-|---|---|---|
-| <img src="docs/media/portfolio.png" width="190" alt="Portfolio"> | <img src="docs/media/what-if.png" width="190" alt="What If scenarios"> | <img src="docs/media/what-if-builder.png" width="190" alt="What If scenario editor"> |
+| Portfolio | What If | Scenario | Search |
+|---|---|---|---|
+| <img src="docs/media/portfolio.png" width="190" alt="Portfolio"> | <img src="docs/media/what-if.png" width="190" alt="What If scenarios"> | <img src="docs/media/what-if-builder.png" width="190" alt="What If scenario editor"> | <img src="docs/media/search.png" width="190" alt="Add stocks"> |
 
-Screenshots use the simulated market with demo data (`-demoData`).
+**Edge cases** — triggered from the in-app market controls; every screen reacts through the normal price stream:
+
+<p align="center">
+  <img src="docs/media/social/edge-cases.png" width="800" alt="Market crash, trading halt, feed drop and market controls">
+</p>
+
+| First launch | Open source |
+|---|---|
+| <img src="docs/media/welcome.png" width="190" alt="About sheet on first launch: learning project, simulated market, not investment advice, privacy, open source"> | <img src="docs/media/github.png" width="190" alt="View source on GitHub opens the repository"> |
+
+Screenshots show the distribution build: fictional companies, simulated prices (`-distribution -demoData`).
 
 ## Features
 
-- **Watchlist** — live prices, daily change and sparklines; search Borsa Istanbul stocks, add, remove and reorder
+- **Watchlist** — live prices, daily change and sparklines; search, add, remove and reorder (Borsa Istanbul tickers in developer builds, fictional companies in the distribution build)
 - **Stock detail** — line and candlestick charts drawn by hand (Core Graphics / Core Animation), 1D · 1W · 1M · 1Y, crosshair with haptics, live position card
 - **Trading** — buy / sell with 100,000 TRY of virtual cash; insufficient cash / quantity and trading-halt rules
 - **Portfolio** — total value, all-time P&L, positions and trade history, saved on device
@@ -84,6 +94,7 @@ Open `StockSim/StockSim.xcodeproj` and run. Useful launch arguments:
 | `-inMemoryStorage` | Do not read or write saved data |
 | `-demoData` | Seeded demo account and scenarios (in memory), used for screenshots |
 | `-distribution` | Behave like the TestFlight build: fictional companies, simulator only (in memory) |
+| `-showWelcome` | Show the first-launch About sheet on every launch (for screenshots) |
 
 ## Progress
 
@@ -104,7 +115,7 @@ Open `StockSim/StockSim.xcodeproj` and run. Useful launch arguments:
 | 11 | Edge cases in the app | ✅ Done |
 | 12 | Performance | ✅ Done |
 | 13 | Polish & publish | ✅ Done |
-| 14 | TestFlight public beta | 🚧 Build ready, upload pending |
+| 14 | TestFlight public beta | 🚧 Build ready, upload postponed |
 
 See [PLAN.md](PLAN.md) for the full plan and [NOTES.md](NOTES.md) for learning notes (Turkish).
 
