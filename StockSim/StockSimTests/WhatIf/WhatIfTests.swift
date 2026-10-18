@@ -127,6 +127,22 @@ struct WhatIfBuilderInteractorTests {
         #expect(response.amount == Money(5_000))
     }
 
+    /// Düzenlemede alım fiyatı kayıttan gelir (geçmiş veri farklı bir fiyat söylese bile);
+    /// tarih değişince yeniden hesaplanır.
+    @Test func editingKeepsTheSavedEntryPriceUntilTheDateChanges() async throws {
+        let (interactor, presenter, _) = make()
+        let saved = WhatIfScenario(instrument: thyao, amount: Money(5_000), startDate: now.addingTimeInterval(-150 * day), entryPrice: Money(222))
+        interactor.editing = saved
+        await interactor.load()
+        #expect(presenter.lastScenario?.entryPrice == Money(222))
+
+        await interactor.edit(request: .init(amountText: "8.000"))
+        #expect(presenter.lastScenario?.entryPrice == Money(222))
+
+        await interactor.edit(request: .init(date: now.addingTimeInterval(-210 * day)))
+        #expect(presenter.lastScenario?.entryPrice == Money(200))   // geçmişten (200 gün önceki mum)
+    }
+
     /// Kaydet: aynı kimlikle güncelle, yeni senaryo ekleme.
     @Test func savingAnEditUpdatesInPlace() async throws {
         let (interactor, _, worker) = make()

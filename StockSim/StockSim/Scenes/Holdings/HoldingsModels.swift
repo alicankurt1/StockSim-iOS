@@ -44,7 +44,7 @@ enum Holdings {
         let id: Symbol
         let symbol: String
         let monogram: String
-        /// "4 shares · Avg ₺287,50"
+        /// "4 × ₺287,50" (adet × ortalama maliyet)
         let summary: String
         let value: String
         /// "+₺12,00 (+%1,04)"

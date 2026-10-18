@@ -79,6 +79,8 @@ final class WatchlistCell: UICollectionViewListCell {
 
         isAccessibilityElement = true
         accessibilityLabel = "\(row.symbol), \(row.name), \(row.price), \(row.change)"
+        accessibilityTraits = .button
+        accessibilityHint = "Opens details"
 
         if priceChanged { flashPrice(color: color) }
     }

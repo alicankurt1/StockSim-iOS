@@ -116,7 +116,7 @@ final class WhatIfBuilderInteractor: WhatIfBuilderBusinessLogic, WhatIfBuilderDa
                 instrument: instrument,
                 amount: amount,
                 startDate: date,
-                entryPrice: loadedCandles[index].open
+                entryPrice: entryPrice(calculated: loadedCandles[index].open, for: instrument)
             )
             lastScenario = scenario
             present(.result(scenario, currentPrice: currentPrice, candles: Array(loadedCandles[index...])))
@@ -124,6 +124,16 @@ final class WhatIfBuilderInteractor: WhatIfBuilderBusinessLogic, WhatIfBuilderDa
             guard current == generation else { return }
             present(.unavailable)
         }
+    }
+
+    /// Kaydedilmiş senaryonun alım fiyatı bir olgudur: düzenlemede sadece tutar değiştiyse
+    /// korunur. Geçmiş veri zamanla değişebilir (simülatör geçmişi canlı fiyattan üretir,
+    /// gerçek veride düzeltmeler olur); hisse ya da tarih değişince yeniden hesaplanır.
+    private func entryPrice(calculated: Money, for instrument: Instrument) -> Money {
+        guard let editing, editing.instrument.symbol == instrument.symbol, editing.startDate == date else {
+            return calculated
+        }
+        return editing.entryPrice
     }
 
     private func present(_ outcome: WhatIfBuilder.Response.Outcome) {

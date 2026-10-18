@@ -56,7 +56,7 @@ struct HoldingsPresenterTests {
         let rows = try #require(present(try samplePortfolio(), prices: [thyao: 130])).positions
 
         #expect(rows.count == 1)
-        #expect(rows.first?.summary == "3 shares · Avg ₺100,00")
+        #expect(rows.first?.summary == "3 × ₺100,00")
         #expect(rows.first?.value == "₺390,00")
         #expect(rows.first?.profitLoss == "+₺90,00 (+%30,00)")
     }

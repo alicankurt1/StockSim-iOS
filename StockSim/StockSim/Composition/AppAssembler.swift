@@ -76,6 +76,7 @@ final class AppAssembler {
     }
 
     static func makeWhatIfStore() -> WhatIfStoring {
+        if DemoData.isEnabled { return WhatIfStore(repository: DemoData.WhatIfRepository()) }
         guard !usesInMemoryStorage, let repository = try? FileWhatIfRepository.defaultLocation() else {
             return WhatIfStore()
         }
@@ -83,7 +84,7 @@ final class AppAssembler {
     }
 
     private static var usesInMemoryStorage: Bool {
-        ProcessInfo.processInfo.arguments.contains("-inMemoryStorage") || isStressTest
+        ProcessInfo.processInfo.arguments.contains("-inMemoryStorage") || isStressTest || DemoData.isEnabled
     }
 
     // MARK: - Performans ölçümü (Phase 12)
@@ -94,7 +95,7 @@ final class AppAssembler {
     static var batchesUpdates: Bool { !ProcessInfo.processInfo.arguments.contains("-noBatching") }
 
     private static func savedDataSource() -> MarketDataSource {
-        if isStressTest { return .simulated }
+        if isStressTest || DemoData.isEnabled { return .simulated }
         if ProcessInfo.processInfo.arguments.contains("-realData") { return .delayed }
         return UserDefaults.standard.string(forKey: dataSourceKey).flatMap(MarketDataSource.init) ?? .simulated
     }
@@ -128,6 +129,9 @@ final class AppAssembler {
     /// Hesap cihazda bir JSON dosyasında kalıcı. Domain sadece `PortfolioRepository`'yi bilir;
     /// dosya mı, bellek mi burada seçilir (DIP). `-inMemoryStorage`: UI testleri temiz başlasın diye.
     static func makePortfolioStore() -> PortfolioStoring {
+        if DemoData.isEnabled {
+            return PortfolioStore(repository: InMemoryPortfolioRepository(stored: DemoData.portfolio()))
+        }
         guard !usesInMemoryStorage, let repository = try? FilePortfolioRepository.defaultLocation() else {
             return PortfolioStore()
         }
